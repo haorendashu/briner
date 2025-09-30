@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/chrome-manifest.json",
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "nesigner_browser_extension",
-  "description": "A modern browser extension content script example built with Extension.js and Vue. Demonstrates how to create interactive content scripts using Vue components with clean, maintainable code.",
+  "name": "Briner",
+  "description": "A nostr bridge signer browser extension",
   "icons": {
     "48": "images/extension_48.png"
   },
@@ -23,12 +23,13 @@
       ]
     }
   ],
-  "author": "Your Name",
+  "author": "DASHU",
   "action": {
     "default_popup": "./action/action.html",
     "default_title": "Extension.js Action Popup",
     "default_icon": {
       "48": "images/extension_48.png"
     }
-  }
+  },
+  "options_page": "./options/options.html"
 }
