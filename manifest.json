@@ -23,5 +23,12 @@
       ]
     }
   ],
-  "author": "Your Name"
+  "author": "Your Name",
+  "action": {
+    "default_popup": "./action/action.html",
+    "default_title": "Extension.js Action Popup",
+    "default_icon": {
+      "48": "images/extension_48.png"
+    }
+  }
 }
