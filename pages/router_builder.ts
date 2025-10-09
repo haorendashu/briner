@@ -1,15 +1,10 @@
-import './styles.css'
-
-import { createApp } from 'vue'
-import optionsApp from './options.vue'
-
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import appDetailView from '../pages/apps/app_detail.vue'
-import appsView from '../pages/apps/apps.vue'
-import usersView from '../pages/users/users.vue'
-import logsView from '../pages/logs/logs.vue'
-import indexView from '../pages/index/index.vue'
+import appDetailView from './apps/app_detail.vue'
+import appsView from './apps/apps.vue'
+import usersView from './users/users.vue'
+import logsView from './logs/logs.vue'
+import indexView from './index/index.vue'
 
 const routes = [
     { path: '/', component: indexView },
@@ -24,4 +19,4 @@ const router = createRouter({
     routes,
 })
 
-createApp(optionsApp).use(router).mount('#app')
+export default router
