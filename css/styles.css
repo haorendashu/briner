@@ -1,0 +1,11 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 300px;
+    padding: 2rem;
+    font-size: 1.3rem;
+    line-height: 1.2;
+    max-width: 38em;
+    margin: auto;
+}
