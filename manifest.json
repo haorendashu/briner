@@ -19,7 +19,7 @@
         "<all_urls>"
       ],
       "js": [
-        "./content/scripts.ts"
+        "./content/content.ts"
       ],
       "css": [
         "./css/globals.css"
