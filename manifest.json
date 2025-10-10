@@ -34,5 +34,16 @@
       "48": "images/extension_48.png"
     }
   },
-  "options_page": "./options/options.html"
+  "options_page": "./options/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/scripts/nostr_script.js"
+      ],
+      "matches": [
+        "https://*/*",
+        "http://localhost:*/*"
+      ]
+    }
+  ]
 }
