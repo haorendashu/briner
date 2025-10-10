@@ -9,6 +9,10 @@ export default {
   methods: {
     openOptionsPage() {
       chrome.runtime.openOptionsPage()
+    },
+    openOAuthPage() {
+      let oauthUrl = chrome.runtime.getURL('/pages/oauth.html')
+      chrome.windows.create({url: oauthUrl, type: 'popup'})
     }
   },
   mounted() {
@@ -25,7 +29,8 @@ export default {
       <RouterLink to="/logs" class="mr-4">Logs</RouterLink>
     </nav>
     <RouterView />
-    <b v-on:click='openOptionsPage'>open Options Page</b>
+    <b v-on:click='openOptionsPage'>open Options Page</b><br/>
+    <b v-on:click='openOAuthPage'>open OAuth Page</b><br/>
     <div class="bg-blue-500 text-white p-4 rounded-lg">
         Hello, Tailwind CSS!
     </div>
