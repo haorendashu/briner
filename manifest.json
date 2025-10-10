@@ -42,7 +42,7 @@
       ],
       "matches": [
         "https://*/*",
-        "http://localhost:*/*"
+        "http://*/*"
       ]
     }
   ]
