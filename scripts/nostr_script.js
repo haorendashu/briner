@@ -9,7 +9,7 @@ window.nostr = {
     },
 
     async signEvent(event) {
-        return await this._call('signEvent', { event })
+        return await this._call('signEvent', event)
     },
 
     async getRelays() {
@@ -18,21 +18,21 @@ window.nostr = {
 
     nip04: {
         async encrypt(pubkey, plaintext) {
-            return window.nostr._call('nip04.encrypt', { pubkey, plaintext })
+            return window.nostr._call('nip04Encrypt', { 'pubkey': pubkey, 'text': plaintext })
         },
 
         async decrypt(pubkey, ciphertext) {
-            return window.nostr._call('nip04.decrypt', { pubkey, ciphertext })
+            return window.nostr._call('nip04Decrypt', { 'pubkey': pubkey, 'text': ciphertext })
         }
     },
 
     nip44: {
         async encrypt(pubkey, plaintext) {
-            return window.nostr._call('nip44.encrypt', { pubkey, plaintext })
+            return window.nostr._call('nip44Encrypt', { 'pubkey': pubkey, 'text': plaintext })
         },
 
         async decrypt(pubkey, ciphertext) {
-            return window.nostr._call('nip44.decrypt', { pubkey, ciphertext })
+            return window.nostr._call('nip44Decrypt', { 'pubkey': pubkey, 'text': ciphertext })
         }
     },
 

@@ -7,6 +7,9 @@
   "icons": {
     "48": "images/extension_48.png"
   },
+  "permissions": [
+    "storage"
+  ],
   "background": {
     "chromium:service_worker": "background.ts",
     "firefox:scripts": [

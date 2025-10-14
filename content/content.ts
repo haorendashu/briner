@@ -24,7 +24,6 @@ window.addEventListener('message', message => {
         // 转发消息给 background script
         chrome.runtime.sendMessage(message.data, response => {
             console.log('Content script received response from background:', response);
-            console.log(window.nostr);
             window.postMessage({
                 ext: 'briner',
                 id: message.data.id,
