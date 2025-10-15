@@ -1,6 +1,6 @@
 // import { getSerialPort } from 'js_nesigner_sdk'
-import type { ISigner } from './business/nostr_signer/isigner';
-import { NsecSigner } from './business/nostr_signer/nsec_signer';
+import type { ISigner } from '../business/nostr_signer/isigner';
+import { NsecSigner } from '../business/nostr_signer/nsec_signer';
 
 console.log('Hello from the background script!')
 

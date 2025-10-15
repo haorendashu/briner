@@ -11,9 +11,9 @@
     "storage"
   ],
   "background": {
-    "chromium:service_worker": "background.ts",
+    "chromium:service_worker": "background/background.ts",
     "firefox:scripts": [
-      "background.ts"
+      "background/background.ts"
     ]
   },
   "content_scripts": [

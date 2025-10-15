@@ -13,6 +13,12 @@ export default {
       const port = await getSerialPort()
       console.log(port)
     }
+  },
+  mounted() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log("receive at option page message:", message)
+      console.log("at option page sender:", sender)
+    })
   }
 }
 </script>
