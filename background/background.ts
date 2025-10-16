@@ -7,10 +7,6 @@ console.log('Hello from the background script!')
 
 let nostrMessageService = new NostrMessageService();
 
-let signer = new NsecSigner('');
-var pubkey = await signer.getPublicKey();
-nostrMessageService.addSigner(pubkey, signer);
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // message: 发送的消息内容
     // sender: 包含发送方信息（如 tab 信息、扩展 ID 等）
