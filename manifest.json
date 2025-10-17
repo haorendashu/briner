@@ -24,9 +24,6 @@
       ],
       "js": [
         "./content/content.ts"
-      ],
-      "css": [
-        "./css/globals.css"
       ]
     }
   ],
