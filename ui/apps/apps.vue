@@ -1,12 +1,35 @@
-<script lang="ts">
+<script lang="ts" setup>
+import AppBarComponent from '../components/app_bar_component.vue'
+import AppItemComponent from '../components/app_item_component.vue'
 </script>
 <template>
-    <div>
-        <h1>Apps</h1>
-    </div>
-    <div>
-        <RouterLink to="/apps/1" class="mr-4">App 1</RouterLink>
-        <RouterLink to="/apps/2" class="mr-4">App 2</RouterLink>
-        <RouterLink to="/apps/3" class="mr-4">App 3</RouterLink>
+    <AppBarComponent title="Apps"></AppBarComponent>
+    <div class="container mb-4">
+        <div class="card mt-4">
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+            <AppItemComponent />
+        </div>
     </div>
 </template>
