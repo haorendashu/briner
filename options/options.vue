@@ -44,16 +44,14 @@ export default {
 }
 </script>
 <template>
-  <nav>
-    <RouterLink to="/" class="mr-4">Index</RouterLink>
-    <RouterLink to="/apps" class="mr-4">Apps</RouterLink>
-    <RouterLink to="/users" class="mr-4">Users</RouterLink>
-    <RouterLink to="/logs" class="mr-4">Logs</RouterLink>
-  </nav>
-  <RouterView />
-  <h1>
-    {{message}}
-  </h1>
-  <b v-on:click='pickSerialPort'>Pick Serial Port</b><br/>
-  <b v-on:click='testAddSigner'>Test Add Signer</b>
+  <div class="min-h-screen flex flex-col">
+    <div class="flex-1">
+      <RouterView />
+    </div>
+    <footer class="py-4 border-t">
+      <div class="container mx-auto text-center text-gray-600">
+        © {{ new Date().getFullYear() }} 版权所有
+      </div>
+    </footer>
+  </div>
 </template>
