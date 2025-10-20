@@ -2,13 +2,45 @@
 import CircleImageComponent from '../components/circle_image_component.vue'
 import AppItemComponent from '../components/app_item_component.vue'
 import AuthLogItemComponent from '../components/auth_log_item_component.vue'
-import { useRouter } from 'vue-router';
-const router = useRouter();
+import { useRouter } from 'vue-router'
+import { userManager } from '../../business/data/user_manager'
+import { ref, onMounted } from 'vue'
+
+const router = useRouter()
+
+// 响应式用户数据
+const users = ref<any[]>([])
+const userCount = ref(0)
 
 const toUsersPage = () => {
-    router.push('/users');
+    router.push('/users')
 }
+
+// 加载用户数据
+const loadUsers = async () => {
+    try {
+        await userManager.initialize()
+        users.value = userManager.getAll()
+        userCount.value = userManager.getCount()
+    } catch (error) {
+        console.error('Failed to load users:', error)
+    }
+}
+
+// 组件挂载时加载数据
+onMounted(async () => {
+    await loadUsers()
+    
+    // 设置存储变化监听器
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes['briner_users']) {
+            console.log('Storage changed, reloading users...')
+            loadUsers()
+        }
+    })
+})
 </script>
+
 <template>
     <div class="container">
         <div class="flex p-4 items-center">
@@ -68,7 +100,7 @@ const toUsersPage = () => {
             <AuthLogItemComponent />
 
             <div class="item justify-center">
-                <RouterLink to="/logs" class="mr-4">Show more apps</RouterLink>
+                <RouterLink to="/logs" class="mr-4">Show more logs</RouterLink>
             </div>
         </div>
     </div>
