@@ -5,7 +5,7 @@ import { userManager } from '../../business/data/user_manager'
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure'
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils'
 import { KeyType, User } from '../../business/data/user'
-import { nip19 } from 'nostr-tools'
+import { nip05, nip19 } from 'nostr-tools'
 import { useRouter } from 'vue-router';
 import { BunkerSigner as NBunkerSigner, parseBunkerInput } from 'nostr-tools/nip46'
 
@@ -45,8 +45,21 @@ const addSolfwareUser = async () => {
         if (input.indexOf("@") > 0) {
             // NIP-05 Address
             // TODO get pubkey from NIP-05 Address
+            let profile = await nip05.queryProfile(input)
+            if (profile) {
+                pubkey = profile.pubkey
+            } else {
+                alert("NIP-05 Address error")
+                return
+            }
+        } else {
+            // npub
+            let decodeResult = nip19.decode(input)
+            if (decodeResult.type === 'npub') {
+                pubkey = decodeResult.data
+            }
         }
-        let user = new User(pubkey, KeyType.NPUB, input);
+        let user = new User(pubkey, KeyType.NPUB);
         userManager.save(user)
 
         router.back()
