@@ -48,7 +48,7 @@ onMounted(async () => {
 
 <template>
     <div v-if="users.length > 0" class="container">
-        <div class="flex pl-4 pr-4 pt-4 items-center">
+        <div class="flex pl-4 pr-4 pt-4 items-center" v-on:click="toUsersPage">
             <CircleImageComponent
                 imageUrl="/imgs/user_white.png"
                 :diameter="50"
