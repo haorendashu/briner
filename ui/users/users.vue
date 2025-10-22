@@ -78,13 +78,12 @@ onMounted(async () => {
 <template>
     <AppBarComponent title="Users">
         <template #right>
-            <RouterLink to="/addUser" class="px-2 font-bold text-xl">+</RouterLink>
+            <RouterLink to="/users/addUser" class="px-2 font-bold text-xl">+</RouterLink>
         </template>
     </AppBarComponent>
     <div class="container mt-4 mb-4">
         <!-- 用户列表 -->
         <div class="card">
-            <h3 class="text-lg font-semibold mb-3">用户列表</h3>
             <div v-if="isLoading" class="text-center py-4">
                 加载中...
             </div>

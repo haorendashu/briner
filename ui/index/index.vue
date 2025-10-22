@@ -2,6 +2,7 @@
 import CircleImageComponent from '../components/circle_image_component.vue'
 import AppItemComponent from '../components/app_item_component.vue'
 import AuthLogItemComponent from '../components/auth_log_item_component.vue'
+import UsernameComponent from '../components/username_component.vue'
 import { useRouter } from 'vue-router'
 import { userManager } from '../../business/data/user_manager'
 import { ref, onMounted } from 'vue'
@@ -27,6 +28,10 @@ const loadUsers = async () => {
     }
 }
 
+const toAddUser = () => {
+    router.push('/users/addUser')
+}
+
 // 组件挂载时加载数据
 onMounted(async () => {
     await loadUsers()
@@ -42,36 +47,38 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="container">
-        <div class="flex p-4 items-center">
-            <CircleImageComponent 
-                imageUrl="https://gips3.baidu.com/it/u=2776647388,3101487920&fm=3074&app=3074&f=PNG?w=2048&h=2048"
+    <div v-if="users.length > 0" class="container">
+        <div class="flex pl-4 pr-4 pt-4 items-center">
+            <CircleImageComponent
+                imageUrl="/imgs/user_white.png"
                 :diameter="50"
                 altText="用户头像"
                 class="ml-4"
+                backgroundColor="#333333"
             />
             <div class="ml-4 text-lg">
-                用户名
+                <UsernameComponent :pubkey="users[0].pubkey" />
             </div>
         </div>
-        <div class="card flex items-center" v-on:click="toUsersPage">
-            <div class="ml-4 mr-4 flex items-center">
-                <CircleImageComponent 
-                    imageUrl="https://gips3.baidu.com/it/u=2776647388,3101487920&fm=3074&app=3074&f=PNG?w=2048&h=2048"
-                    :diameter="30"
-                    altText="用户头像"
-                />
+        <div v-if="users.length > 1" class="card mt-4" v-on:click="toUsersPage">
+            <div class="flex items-center pl-4 pr-4">
+                <div v-for="user in users" class="mr-2 flex items-center">
+                    <CircleImageComponent 
+                        imageUrl="/imgs/user_white.png"
+                        :diameter="30"
+                        altText="用户头像"
+                        backgroundColor="#333333"
+                    />
+                </div>
+                <div class="ml-auto">
+                    <p class="text-lg">&gt;</p>
+                </div>
             </div>
-            <div class="mr-4 flex items-center">
-                <CircleImageComponent 
-                    imageUrl="https://q2.itc.cn/q_70/images03/20250225/e8117dd40aae4db5a64461f1ea0d16fc.jpeg"
-                    :diameter="30"
-                    altText="用户头像"
-                />
-            </div>
-            <div class="ml-auto mr-4">
-                <p class="text-lg">&gt;</p>
-            </div>
+        </div>
+    </div>
+    <div v-if="users.length <= 0" class="container mt-4 pl-4">
+        <div class="text-left">
+            <p class="text-lg font-bold ml-4" v-on:click="toAddUser">Click and Login</p>
         </div>
     </div>
 

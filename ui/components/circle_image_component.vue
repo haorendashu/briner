@@ -3,7 +3,8 @@
     class="circle-image-container"
     :style="{
       width: `${diameter}px`,
-      height: `${diameter}px`
+      height: `${diameter}px`,
+      backgroundColor: backgroundColor
     }"
   >
     <img
@@ -41,11 +42,13 @@ interface Props {
   imageUrl: string
   diameter?: number
   altText?: string
+  backgroundColor?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   diameter: 100,
-  altText: '圆形图片'
+  altText: '圆形图片',
+  backgroundColor: 'transparent'
 })
 
 // 响应式数据
@@ -77,6 +80,7 @@ onMounted(() => {
   position: relative;
   display: inline-block;
   overflow: hidden;
+  border-radius: 50%;
 }
 
 .circle-image {

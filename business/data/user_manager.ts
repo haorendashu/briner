@@ -141,7 +141,7 @@ export class UserManager {
         if (change.newValue && Array.isArray(change.newValue)) {
             this.users.clear();
             change.newValue.forEach((userData: any) => {
-                const user = new User(userData.pubkey, userData.keyType, userData.nesc);
+                const user = new User(userData.pubkey, userData.keyType, userData.keyText);
                 Object.assign(user, userData);
                 if (user.pubkey) {
                     this.users.set(user.pubkey, user);

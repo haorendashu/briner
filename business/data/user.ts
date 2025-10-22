@@ -1,14 +1,21 @@
 
+export enum KeyType {
+    NESC = 0,
+    NPUB = 1,
+    REMOTE = 2,
+    HARDWARE = 3,
+}
+
 export class User {
     pubkey: string;
     keyType: number;
-    nesc: string | undefined;
+    keyText: string | undefined;
     createdAt: number | undefined;
     updatedAt: number | undefined;
 
-    constructor(pubkey: string, keyType: number, nesc?: string) {
+    constructor(pubkey: string, keyType: number, keyText?: string) {
         this.pubkey = pubkey;
         this.keyType = keyType;
-        this.nesc = nesc;
+        this.keyText = keyText;
     }
 }
