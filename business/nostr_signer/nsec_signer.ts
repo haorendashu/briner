@@ -1,19 +1,15 @@
 import { finalizeEvent, getPublicKey, type EventTemplate, type VerifiedEvent } from "nostr-tools";
 import type { ISigner } from "./isigner";
-import { hexToBytes } from "nostr-tools/utils";
 import { decrypt, encrypt } from "nostr-tools/nip04";
 import { getConversationKey, decrypt as nip44Decrypt, encrypt as nip44Encrypt } from "nostr-tools/nip44";
 
 export class NsecSigner implements ISigner {
     private secretKey: Uint8Array;
 
-    private nsec: string;
-
     private pubkey: string;
 
-    constructor(nsec: string) {
-        this.nsec = nsec;
-        this.secretKey = hexToBytes(nsec);
+    constructor(secretKey: Uint8Array) {
+        this.secretKey = secretKey;
         this.pubkey = getPublicKey(this.secretKey);
     }
 

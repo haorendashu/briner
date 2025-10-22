@@ -31,6 +31,10 @@ export class NostrMessageService {
         if (!signer) {
             return false;
         }
+        // if (this.signers.size == 0) {
+        //     return false
+        // }
+        // let signer = this.signers.values().next().value
 
         switch (type) {
             case 'getPublicKey':

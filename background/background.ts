@@ -1,11 +1,38 @@
 // import { getSerialPort } from 'js_nesigner_sdk'
+import { nip19 } from 'nostr-tools';
+import { KeyType } from '../business/data/user';
+import { userManager } from '../business/data/user_manager';
 import type { ISigner } from '../business/nostr_signer/isigner';
 import { NsecSigner } from '../business/nostr_signer/nsec_signer';
 import { NostrMessageService } from '../business/service/nostr_message_service';
+import { NpubSigner } from '../business/nostr_signer/npub_signer';
+import { hexToBytes } from 'nostr-tools/utils';
 
 console.log('Hello from the background script!')
 
-let nostrMessageService = new NostrMessageService();
+let nostrMessageService: NostrMessageService;
+
+userManager.initialize().then(() => {
+    nostrMessageService = new NostrMessageService();
+
+    let allUser = userManager.getAll()
+    for (var user of allUser) {
+        if (user.keyType == KeyType.NESC && user.keyText) {
+            if (user.keyText.startsWith('nsec')) {
+                // nsec private key
+                let decodedResult = nip19.decode(user.keyText);
+                if (decodedResult.type == 'nsec') {
+                    nostrMessageService!.addSigner(user.pubkey, new NsecSigner(decodedResult.data))
+                }
+            } else {
+                // hex private key
+                nostrMessageService!.addSigner(user.pubkey, new NsecSigner(hexToBytes(user.keyText)))
+            }
+        } else if (user.keyType == KeyType.NPUB) {
+            nostrMessageService!.addSigner(user.pubkey, new NpubSigner(user.pubkey));
+        }
+    }
+})
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // message: 发送的消息内容
