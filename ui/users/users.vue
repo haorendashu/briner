@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import AppBarComponent from '../components/app_bar_component.vue'
 import { userManager } from '../../business/data/user_manager'
-import { User } from '../../business/data/user'
-import { KeyType } from '../../business/consts/key_type'
+import { KeyType, User } from '../../business/data/user'
 import { ref, onMounted } from 'vue'
 
 // 响应式数据
@@ -44,6 +43,8 @@ const deleteUser = async (pubkey: string) => {
 // 获取用户类型名称
 const getUserTypeName = (keyType: number): string => {
   switch (keyType) {
+    case KeyType.NPUB:
+      return 'NPUB'
     case KeyType.NSEC:
       return 'NSEC'
     case KeyType.REMOTE:
