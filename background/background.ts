@@ -17,7 +17,7 @@ userManager.initialize().then(() => {
 
     let allUser = userManager.getAll()
     for (var user of allUser) {
-        if (user.keyType == KeyType.NESC && user.keyText) {
+        if (user.keyType == KeyType.NSEC && user.keyText) {
             if (user.keyText.startsWith('nsec')) {
                 // nsec private key
                 let decodedResult = nip19.decode(user.keyText);

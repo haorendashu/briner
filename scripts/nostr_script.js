@@ -64,8 +64,7 @@ window.addEventListener('message', message => {
 
     if (
         !message.data ||
-        message.data.response === null ||
-        message.data.response === undefined ||
+        (!message.data.response && !message.data.error) ||
         message.data.ext !== 'briner' ||
         !window.nostr._requests[message.data.id]
     )
@@ -73,9 +72,8 @@ window.addEventListener('message', message => {
 
     console.log("nostr script receive message:", message);
 
-    if (message.data.response.error) {
-        let error = new Error('briner: ' + message.data.response.error.message)
-        error.stack = message.data.response.error.stack
+    if (message.data.error) {
+        let error = new Error('briner: ' + message.data.error)
         window.nostr._requests[message.data.id].reject(error)
     } else {
         window.nostr._requests[message.data.id].resolve(message.data.response)

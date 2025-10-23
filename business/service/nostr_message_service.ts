@@ -42,12 +42,18 @@ export class NostrMessageService {
                     signer?.getPublicKey().then((res) => {
                         console.log('getPublicKey:', res)
                         sendResponse({ id: id, response: res })
+                    }).catch((err) => {
+                        console.log('getPublicKey error:', err)
+                        sendResponse({ id: id, error: err.message })
                     })
                     break;
                 }
             case 'signEvent':
                 signer?.signEvent(params).then((res) => {
                     sendResponse({ id: id, response: res })
+                }).catch((err) => {
+                    console.log('signEvent error:', err)
+                    sendResponse({ id: id, error: err.message })
                 })
                 break;
             case 'nip04Decrypt':
@@ -56,6 +62,9 @@ export class NostrMessageService {
                     let text = params.text
                     signer?.nip04Decrypt(pubkey, text).then((res) => {
                         sendResponse({ id: id, response: res })
+                    }).catch((err) => {
+                        console.log('nip04Decrypt error:', err)
+                        sendResponse({ id: id, error: err.message })
                     })
                     break;
                 }
@@ -65,6 +74,9 @@ export class NostrMessageService {
                     let text = params.text
                     signer?.nip04Encrypt(pubkey, text).then((res) => {
                         sendResponse({ id: id, response: res })
+                    }).catch((err) => {
+                        console.log('nip04Encrypt error:', err)
+                        sendResponse({ id: id, error: err.message })
                     })
                     break;
                 }
@@ -74,6 +86,9 @@ export class NostrMessageService {
                     let text = params.text
                     signer?.nip44Decrypt(pubkey, text).then((res) => {
                         sendResponse({ id: id, response: res })
+                    }).catch((err) => {
+                        console.log('nip44Decrypt error:', err)
+                        sendResponse({ id: id, error: err.message })
                     })
                     break;
                 }
@@ -83,6 +98,9 @@ export class NostrMessageService {
                     let text = params.text
                     signer?.nip44Encrypt(pubkey, text).then((res) => {
                         sendResponse({ id: id, response: res })
+                    }).catch((err) => {
+                        console.log('nip44Encrypt error:', err)
+                        sendResponse({ id: id, error: err.message })
                     })
                     break;
                 }
@@ -92,7 +110,5 @@ export class NostrMessageService {
     }
 
     saveAuthLog() { }
-
-
 
 }

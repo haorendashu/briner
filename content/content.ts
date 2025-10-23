@@ -27,7 +27,8 @@ window.addEventListener('message', message => {
             window.postMessage({
                 ext: 'briner',
                 id: message.data.id,
-                response: response.response
+                response: response.response,
+                error: response.error
             }, '*');
         });
 

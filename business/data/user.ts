@@ -1,6 +1,6 @@
 
 export enum KeyType {
-    NESC = 0,
+    NSEC = 0,
     NPUB = 1,
     REMOTE = 2,
     HARDWARE = 3,

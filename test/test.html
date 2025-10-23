@@ -10,6 +10,7 @@
 <body>
     <h1>Test Nostr Web Browser</h1><br />
     <button onclick="testGetPubkey()">Test Get Pubkey</button>
+    <button onclick="testNIP44Encrypt()">Test NIP44 encrypt</button>
     <script>
         function testGetPubkey() {
             console.log(window.nostr);
@@ -19,6 +20,16 @@
                 })
             }
         }
+
+        function testNIP44Encrypt() {
+            console.log(window.nostr);
+            if (window.nostr) {
+                window.nostr.nip44.encrypt('29320975df855fe34a7b45ada2421e2c741c37c0136901fe477133a91eb18b07', 'Hello, world!').then(encrypted => {
+                    console.log("encrypted:", encrypted);
+                })
+            }
+        }
+
     </script>
 </body>
 
