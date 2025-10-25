@@ -7,7 +7,8 @@ import { bytesToHex, hexToBytes } from 'nostr-tools/utils'
 import { KeyType, User } from '../../business/data/user'
 import { nip05, nip19 } from 'nostr-tools'
 import { useRouter } from 'vue-router';
-import { BunkerSigner as NBunkerSigner, parseBunkerInput } from 'nostr-tools/nip46'
+import { parseExtendBunkerInput, RemoteSigner, toExtendBunkerURL } from '../../business/nostr_signer/remote_signer'
+import { createNesigner, getSerialPort } from 'js_nesigner_sdk'
 
 const router = useRouter();
 
@@ -65,11 +66,32 @@ const addSolfwareUser = async () => {
         router.back()
     } else if (input.startsWith("bunker://")) {
         // bunker url
-        let bunkerInfo = parseBunkerInput(input)
+        let bunkerInfo = await parseExtendBunkerInput(input)
         if (!bunkerInfo) {
             alert("请输入正确的bunker url")
             return
         }
+
+        bunkerInfo.localSignerSecretKey = bytesToHex(generateSecretKey())
+        let remoteSigner = new RemoteSigner(toExtendBunkerURL(bunkerInfo))
+        let loginSuccess = await remoteSigner.login()
+        if (!loginSuccess) {
+            alert("登录bunker失败")
+            return
+        }
+
+        bunkerInfo.userPubkey = await remoteSigner.getPublicKey()
+        if (!bunkerInfo.userPubkey) {
+            alert("获取bunker用户公钥失败")
+            return
+        }
+
+        await remoteSigner.close();
+
+        let user = new User(bunkerInfo.userPubkey, KeyType.REMOTE, toExtendBunkerURL(bunkerInfo))
+        userManager.save(user)
+
+        router.back()
     } else {
         let hexPrivateKey = input;
 
@@ -86,12 +108,33 @@ const addSolfwareUser = async () => {
         let nsec = nip19.nsecEncode(bytesPrivateKey)
         let pubkey = getPublicKey(bytesPrivateKey)
 
-        let user = new User(pubkey, KeyType.NESC, nsec);
+        let user = new User(pubkey, KeyType.NSEC, nsec);
         userManager.save(user)
 
         router.back()
     }
-    
+}
+
+const addHardwareUser = async () => {
+    if (!nesignerPinCode.value) {
+        alert("请输入Pin Code")
+        return
+    }
+
+    let port = await getSerialPort();
+    if (port) {
+        let nesigner = await createNesigner(port, nesignerPinCode.value)
+        if (nesigner) {
+            let pubkey = await nesigner.getPublicKey()
+            if (pubkey) {
+                let user = new User(pubkey, KeyType.HARDWARE);
+                userManager.save(user)
+            }
+            nesigner.close()
+
+            router.back()
+        }
+    }
 }
 
 </script>
@@ -145,7 +188,7 @@ const addSolfwareUser = async () => {
                 </div>
 
                 <div class="container mb-4">
-                    <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-4xl w-full">Pick a hareware signer</button>
+                    <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-4xl w-full" v-on:click="addHardwareUser">Pick a hareware signer</button>
                 </div>
 
                 <div class="text-center">or</div>

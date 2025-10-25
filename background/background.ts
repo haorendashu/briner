@@ -7,6 +7,7 @@ import { NsecSigner } from '../business/nostr_signer/nsec_signer';
 import { NostrMessageService } from '../business/service/nostr_message_service';
 import { NpubSigner } from '../business/nostr_signer/npub_signer';
 import { hexToBytes } from 'nostr-tools/utils';
+import { RemoteSigner } from '../business/nostr_signer/remote_signer';
 
 console.log('Hello from the background script!')
 
@@ -15,6 +16,7 @@ let nostrMessageService: NostrMessageService;
 userManager.initialize().then(() => {
     nostrMessageService = new NostrMessageService();
 
+    let hasHardwareUser = false;
     let allUser = userManager.getAll()
     for (var user of allUser) {
         if (user.keyType == KeyType.NSEC && user.keyText) {
@@ -30,7 +32,19 @@ userManager.initialize().then(() => {
             }
         } else if (user.keyType == KeyType.NPUB) {
             nostrMessageService!.addSigner(user.pubkey, new NpubSigner(user.pubkey));
+        } else if (user.keyType == KeyType.REMOTE && user.keyText) {
+            let remoteSigner = new RemoteSigner(user.keyText)
+            remoteSigner.login()
+            nostrMessageService!.addSigner(user.pubkey, remoteSigner)
+        } else if (user.keyType == KeyType.HARDWARE) {
+            hasHardwareUser = true;
         }
+    }
+
+    if (hasHardwareUser) {
+        // open hardware login page
+        let oauthUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
+        chrome.windows.create({ url: oauthUrl, type: 'popup' })
     }
 })
 

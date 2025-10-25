@@ -12,7 +12,7 @@ export default {
     }
   },
   mounted() {
-    this.$router.push('/pages/oauth')
+    this.$router.push('/pages/hardwareSignerLogin')
   }
 }
 </script>
