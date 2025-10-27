@@ -41,11 +41,11 @@ userManager.initialize().then(() => {
         }
     }
 
-    if (hasHardwareUser) {
-        // open hardware login page
-        let oauthUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
-        chrome.windows.create({ url: oauthUrl, type: 'popup' })
-    }
+    // if (hasHardwareUser) {
+    // open hardware login page
+    let oauthUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
+    chrome.windows.create({ url: oauthUrl, type: 'popup' })
+    // }
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -22,19 +22,19 @@ export class NostrMessageService {
             return false;
         }
 
-        let app = appManager.getByCode(origin);
-        if (!app || !app.pubkey) {
-            return false;
-        }
-
-        let signer = this.signers.get(app.pubkey);
-        if (!signer) {
-            return false;
-        }
-        // if (this.signers.size == 0) {
-        //     return false
+        // let app = appManager.getByCode(origin);
+        // if (!app || !app.pubkey) {
+        //     return false;
         // }
-        // let signer = this.signers.values().next().value
+
+        // let signer = this.signers.get(app.pubkey);
+        // if (!signer) {
+        //     return false;
+        // }
+        if (this.signers.size == 0) {
+            return false
+        }
+        let signer = this.signers.values().next().value
 
         switch (type) {
             case 'getPublicKey':

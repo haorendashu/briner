@@ -1,23 +1,21 @@
-<script lang="ts">
-import "../css/globals.css";
+<script setup lang="ts">
+import '../css/styles.css'
+import '../css/globals.css'
+import footerComponent from '../ui/components/footer_component.vue'
 
-export default {
-  data() {
-    return {
-    }
-  },
-  methods: {
-    openOptionsPage() {
-      chrome.runtime.openOptionsPage()
-    }
-  },
-  mounted() {
-    this.$router.push('/pages/oauth')
-  }
-}
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+onMounted(() => {
+    router.push('/pages/oauth')
+})
 </script>
 <template>
-  <div class="container h-150">
-    <RouterView />
+  <div class="min-h-screen flex flex-col">
+    <div class="flex-1">
+      <RouterView />
+    </div>
+    <footerComponent />
   </div>
 </template>

@@ -11,8 +11,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router';
-const router = useRouter();
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 // 定义组件props
 interface Props {

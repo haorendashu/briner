@@ -188,7 +188,7 @@ const addHardwareUser = async () => {
                 </div>
 
                 <div class="container mb-4">
-                    <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-4xl w-full" v-on:click="addHardwareUser">Pick a hareware signer</button>
+                    <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-4xl w-full" v-on:click="addHardwareUser">Connect to hareware signer</button>
                 </div>
 
                 <div class="text-center">or</div>

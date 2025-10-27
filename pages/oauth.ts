@@ -1,4 +1,3 @@
-import '../css/styles.css'
 import { createApp } from 'vue'
 import oauthApp from './oauth.vue'
 import router from '../ui/router_builder'
