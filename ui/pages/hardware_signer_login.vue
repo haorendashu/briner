@@ -74,7 +74,7 @@ const initChromeMessageListener = async () => {
             </div>
         </div>
         <div v-if="initedListenMessage" class="card">
-            <h3 class="text-lg font-semibold mt-2 mb-3 text-center">Hardware Signer Connected ! Please keep this windows open !</h3>
+            <h3 class="text-lg font-semibold mt-2 mb-3 text-center">Hardware Signer Connected ! <br/> Please keep this windows open !</h3>
         </div>
     </div>
 </template>
