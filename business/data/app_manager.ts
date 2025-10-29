@@ -1,3 +1,5 @@
+import { AuthResult } from '../consts/auth_result';
+import type { AuthType } from '../consts/auth_type';
 import { App } from './app';
 
 // 存储键名
@@ -7,6 +9,7 @@ const STORAGE_KEY = 'briner_apps';
 export class AppManager {
     private apps: Map<string, App> = new Map(); // 使用code作为键
     private initialized: boolean = false;
+    private permissionMaps: Map<string, Map<string, number>> = new Map(); // code -> permission map
 
     constructor() {
         this.initialize();
@@ -25,8 +28,9 @@ export class AppManager {
                 storedApps.forEach((appData: any) => {
                     const app = new App();
                     Object.assign(app, appData);
-                    if (app.code) { // 改为检查code
+                    if (app.code) {
                         this.apps.set(app.code, app);
+                        this.handleAppPermissionMap(app);
                     }
                 });
             }
@@ -145,10 +149,122 @@ export class AppManager {
                 Object.assign(app, appData);
                 if (app.code) { // 改为检查code
                     this.apps.set(app.code, app);
+                    this.handleAppPermissionMap(app);
                 }
             });
             console.log('Apps updated from storage change');
         }
+    }
+
+    checkPermission(code: string, authType: AuthType, eventKind?: number): AuthResult {
+        const permissionMap = this.getAppPermissionMap(code);
+        if (!permissionMap) {
+            return AuthResult.REJECT;
+        }
+
+        let key = authType.toString();
+        if (eventKind) {
+            key += `-${eventKind}`;
+        }
+
+        const authResult = permissionMap.get(key) || AuthResult.ASK;
+        return authResult;
+    }
+
+    updatePermissionsToApp(permissionMap: Map<string, number>, app: App) {
+        const alwaysAllowItems: string[] = [];
+        const alwaysRejectItems: string[] = [];
+
+        // 按权限类型分组
+        const okPermissions = new Map<string, Set<string>>();
+        const rejectPermissions = new Map<string, Set<string>>();
+
+        // 遍历权限映射，按权限类型分组
+        for (const [key, value] of permissionMap) {
+            const parts = key.split('-');
+            const kind = parts[0];
+            const eventKind = parts.length > 1 ? parts[1] : null;
+
+            let perssionsMap = okPermissions;
+            if (value == AuthResult.REJECT) {
+                perssionsMap = rejectPermissions;
+            }
+
+            if (!perssionsMap.has(kind)) {
+                perssionsMap.set(kind, new Set());
+            }
+
+            if (eventKind) {
+                perssionsMap.get(kind)!.add(eventKind);
+            }
+        }
+
+        // 设置应用的权限字符串
+        app.alwaysAllow = this.singlePermissionsMapToStr(okPermissions);
+        app.alwaysReject = this.singlePermissionsMapToStr(rejectPermissions);
+    }
+
+    private singlePermissionsMapToStr(map: Map<string, Set<string>>) {
+        let permissionStrs = [];
+        for (const [kind, eventKinds] of map) {
+            let permissionStr = kind;
+            if (eventKinds.size > 0) {
+                permissionStr += `-${Array.from(eventKinds).join(',')}`;
+            }
+
+            permissionStrs.push(permissionStr);
+        }
+
+        return permissionStrs.join(';')
+    }
+
+    getAppPermissionMap(code: string): Map<string, number> | undefined {
+        return this.permissionMaps.get(code);
+    }
+
+    private handleAppPermissionMap(app: App) {
+        if (app.code) {
+            this.permissionMaps.set(app.code, this.genPermissionMap(app));
+        }
+    }
+
+    // 获取权限映射
+    private genPermissionMap(app: App): Map<string, number> {
+        const m = new Map<string, number>();
+        this._putPermissionMapValue(m, app.alwaysAllow, AuthResult.OK);
+        this._putPermissionMapValue(m, app.alwaysReject, AuthResult.REJECT);
+        return m;
+    }
+
+    // 添加权限映射值
+    private _putPermissionMapValue(
+        m: Map<string, number>,
+        permissionText: string | undefined,
+        value: number
+    ): void {
+        if (this._isNotBlank(permissionText)) {
+            const permissionStrs = permissionText!.split(";");
+            for (const permissionStr of permissionStrs) {
+                const strs = permissionStr.split("-");
+
+                const kindStr = strs[0];
+                if (strs.length === 1) {
+                    m.set(kindStr, value);
+                } else if (strs.length > 1) {
+                    const eventKindsStr = strs[1];
+                    const eventKindStrs = eventKindsStr.split(",");
+                    for (const eventKindStr of eventKindStrs) {
+                        const key = `${kindStr}-${eventKindStr}`;
+                        m.set(key, value);
+                    }
+                }
+            }
+        }
+    }
+
+    // 检查字符串是否非空
+    private _isNotBlank(text: string | undefined): boolean {
+        return text !== undefined && text !== null && text.trim() !== '';
     }
 }
 
@@ -175,5 +291,11 @@ export const appManager = {
     clearAll: () => defaultAppManager.clearAllApps(),
 
     // 设置监听器
-    setupListener: () => defaultAppManager.setupStorageListener()
+    setupListener: () => defaultAppManager.setupStorageListener(),
+
+    updatePermissionsToApp: (permissionMap: Map<string, number>, app: App) => defaultAppManager.updatePermissionsToApp(permissionMap, app),
+
+    getAppPermissionMap: (code: string) => defaultAppManager.getAppPermissionMap(code),
+
+    checkPermission: (code: string, authType: AuthType, eventKind?: number) => defaultAppManager.checkPermission(code, authType, eventKind),
 };

@@ -1,3 +1,6 @@
+import { AuthResult } from '../consts/auth_result';
+import { AuthType } from '../consts/auth_type';
+import { ConnectType } from '../consts/connect_type';
 import { appManager } from '../data/app_manager'
 import type { ISigner } from '../nostr_signer/isigner'
 
@@ -15,29 +18,58 @@ export class NostrMessageService {
         let url = sender.url
 
         let id = message.id
-        let type = message.type
+        let authType = message.type
         let params = message.params
 
         if (!origin) {
             return false;
         }
 
-        // let app = appManager.getByCode(origin);
-        // if (!app || !app.pubkey) {
-        //     return false;
-        // }
-
-        // let signer = this.signers.get(app.pubkey);
-        // if (!signer) {
-        //     return false;
-        // }
-        if (this.signers.size == 0) {
-            return false
+        let app = appManager.getByCode(origin);
+        if (!app || !app.pubkey || !app.code) {
+            // TODO app connect !
+            return false;
         }
-        let signer = this.signers.values().next().value
 
-        switch (type) {
-            case 'getPublicKey':
+        let signer = this.signers.get(app.pubkey);
+        if (!signer) {
+            return false;
+        }
+        // if (this.signers.size == 0) {
+        //     return false
+        // }
+        // let signer = this.signers.values().next().value
+
+        // check permission
+        let permissionCheckPass = false;
+        if (app.connectType == ConnectType.FULLY_TRUST) {
+            permissionCheckPass = true;
+        } else if (app.connectType == ConnectType.ALWAY_REJECT) {
+            permissionCheckPass = false;
+        } else {
+            let eventKind: number | undefined = undefined;
+            // if (authType == AuthType.SIGN_EVENT || authType == AuthType.DECRYPT_ZAP_EVENT) {
+            if (authType == AuthType.SIGN_EVENT) {
+                eventKind = params.kind
+            }
+
+            let authResult = appManager.checkPermission(app.code, authType, eventKind)
+            if (authResult == AuthResult.OK) {
+                permissionCheckPass = true;
+            } else if (authResult == AuthResult.REJECT) {
+                permissionCheckPass = false;
+            } else if (authResult == AuthResult.ASK) {
+                // TODO ask for permission
+            }
+        }
+
+        if (!permissionCheckPass) {
+            sendResponse({ id: id, error: 'Permission denied' })
+            return true;
+        }
+
+        switch (authType) {
+            case AuthType.GET_PUBLIC_KEY:
                 {
                     signer?.getPublicKey().then((res) => {
                         console.log('getPublicKey:', res)
@@ -48,7 +80,7 @@ export class NostrMessageService {
                     })
                     break;
                 }
-            case 'signEvent':
+            case AuthType.SIGN_EVENT:
                 signer?.signEvent(params).then((res) => {
                     sendResponse({ id: id, response: res })
                 }).catch((err) => {
@@ -56,7 +88,7 @@ export class NostrMessageService {
                     sendResponse({ id: id, error: err.message })
                 })
                 break;
-            case 'nip04Decrypt':
+            case AuthType.NIP04_DECRYPT:
                 {
                     let pubkey = params.pubkey
                     let text = params.text
@@ -68,7 +100,7 @@ export class NostrMessageService {
                     })
                     break;
                 }
-            case 'nip04Encrypt':
+            case AuthType.NIP04_ENCRYPT:
                 {
                     let pubkey = params.pubkey
                     let text = params.text
@@ -80,7 +112,7 @@ export class NostrMessageService {
                     })
                     break;
                 }
-            case 'nip44Decrypt':
+            case AuthType.NIP44_DECRYPT:
                 {
                     let pubkey = params.pubkey
                     let text = params.text
@@ -92,7 +124,7 @@ export class NostrMessageService {
                     })
                     break;
                 }
-            case 'nip44Encrypt':
+            case AuthType.NIP44_ENCRYPT:
                 {
                     let pubkey = params.pubkey
                     let text = params.text
