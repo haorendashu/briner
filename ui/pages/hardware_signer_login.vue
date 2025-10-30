@@ -39,7 +39,8 @@ const initChromeMessageListener = async () => {
         console.log("hardware signer page receive message:", message)
         console.log("hardware signer page sender:", sender)
 
-        if (nostrMessageService.handle(message, sender, sendResponse)) {
+        if (nostrMessageService.shouldBeHandled(message)) {
+            nostrMessageService.handle(message, sender, sendResponse)
             return true;
         }
 

@@ -6,8 +6,7 @@ import { ConnectType } from '../../business/consts/connect_type'
 
 let origin = '';
 let requestId = '';
-let always = ref(false)
-let showMore = ref(false)
+let connectType = ref(ConnectType.REASONABLE)
 
 onMounted(() => {
     let qs = new URLSearchParams(location.search)
@@ -20,6 +19,9 @@ const handleUserChange = (pubkey: string) => {
   console.log('选中的用户:', pubkey)
 }
 
+const selectType = (t: ConnectType) => {
+    connectType.value = t
+}
 </script>
 <template>
     <div class="pl-4 pr-4 pt-4 pb-2">
@@ -34,7 +36,7 @@ const handleUserChange = (pubkey: string) => {
 
     <div class="pl-4 pr-4">
         <div class="container mt-6 text-center">
-            <h1 class="text-xl font-bold">Sign Event</h1>
+            <h1 class="text-xl font-bold">App Connect</h1>
         </div>
 
         <div class="mt-6">
@@ -45,17 +47,28 @@ const handleUserChange = (pubkey: string) => {
             </div>
         </div>
 
-        <div class="mt-6 pl-4 mb-2">
-            <p class="text-center" v-on:click="showMore = !showMore">detail <template v-if="showMore">&#9650;</template><template v-else>&#9660;</template></p>
-        </div>
-        <div v-if="!showMore" class="h-30"></div>
-        <div v-if="showMore" class="h-30 p-2 bg-gray-300 rounded-md overflow-hide">
-            Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }}Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }}
-        </div>
-
-        <div class="mt-6">
-            <input type="checkbox" id="always" value="true" v-model="always" class="mr-2" />
-            <label for="always">Always</label>
+        <div class="mt-6 pl-4">
+            <div class="flex content-center cursor-pointer" v-on:click="selectType(1)">
+                <input type="radio" id="one" value="1" v-model="connectType" class="mr-4" />
+                <div>
+                    <p class="text-base">Fully Trust</p>
+                    <p class="text-cyan">This is the fully trust descript</p>
+                </div>
+            </div>
+            <div class="flex content-center cursor-pointer mt-2" v-on:click="selectType(2)">
+                <input type="radio" id="one" value="2" v-model="connectType" class="mr-4" />
+                <div>
+                    <p class="text-base">Reasonable</p>
+                    <p class="text-cyan">This is the reasonable descript</p>
+                </div>
+            </div>
+            <div class="flex content-center cursor-pointer mt-2" v-on:click="selectType(3)">
+                <input type="radio" id="one" value="3" v-model="connectType" class="mr-4" />
+                <div>
+                    <p class="text-base">Always Reject</p>
+                    <p class="text-cyan">This is the always reject descript</p>
+                </div>
+            </div>
         </div>
 
         <div class="flex justify-end mt-12">

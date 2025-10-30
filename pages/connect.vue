@@ -8,9 +8,11 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 onMounted(() => {
-    router.push('/pages/oauth')
+    router.push('/pages/connect')
 })
 </script>
 <template>
+  <div class="min-h-screen flex flex-col">
     <RouterView />
+  </div>
 </template>

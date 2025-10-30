@@ -55,7 +55,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("receive message:", message)
     console.log("sender:", sender)
 
-    if (nostrMessageService.handle(message, sender, sendResponse)) {
+    if (nostrMessageService.shouldBeHandled(message)) {
+        nostrMessageService.handle(message, sender, sendResponse)
         return true;
     }
 
