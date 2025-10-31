@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { onMounted } from 'vue'
 import UserSelectComponent from '../components/user_select_component.vue'
 import { ConnectType } from '../../business/consts/connect_type'
+import { OtherMessageType } from '../../business/consts/other_message_type';
 
 let origin = '';
 let requestId = '';
@@ -21,6 +22,23 @@ const handleUserChange = (pubkey: string) => {
 
 const selectType = (t: ConnectType) => {
     connectType.value = t
+}
+
+const submit = (confirm: boolean) => {
+    console.log('connectType:', connectType.value)
+    let message = {
+        origin: origin,
+        requestId: requestId,
+        pubkey: selectedUserPubkey.value,
+        type: OtherMessageType.CONNECTION_RESULT,
+        connectType: -1,
+    }
+    if (confirm) {
+        message.connectType = connectType.value   
+    }
+    chrome.runtime.sendMessage(message)
+
+    window.close()
 }
 </script>
 <template>
@@ -52,28 +70,28 @@ const selectType = (t: ConnectType) => {
                 <input type="radio" id="one" value="1" v-model="connectType" class="mr-4" />
                 <div>
                     <p class="text-base">Fully Trust</p>
-                    <p class="text-cyan">This is the fully trust descript</p>
+                    <p class="text-cyan mt-1">I fully trust it<br/>Auto-sign all requests (except payments)</p>
                 </div>
             </div>
-            <div class="flex content-center cursor-pointer mt-2" v-on:click="selectType(2)">
+            <div class="flex content-center cursor-pointer mt-3" v-on:click="selectType(2)">
                 <input type="radio" id="one" value="2" v-model="connectType" class="mr-4" />
                 <div>
                     <p class="text-base">Reasonable</p>
-                    <p class="text-cyan">This is the reasonable descript</p>
+                    <p class="text-cyan mt-1">Let's be reasonable<br/>Auto-approve most common requests</p>
                 </div>
             </div>
-            <div class="flex content-center cursor-pointer mt-2" v-on:click="selectType(3)">
+            <div class="flex content-center cursor-pointer mt-3" v-on:click="selectType(3)">
                 <input type="radio" id="one" value="3" v-model="connectType" class="mr-4" />
                 <div>
                     <p class="text-base">Always Reject</p>
-                    <p class="text-cyan">This is the always reject descript</p>
+                    <p class="text-cyan mt-1">I'm a bit paranoid<br/>Do not sign anything without asking me!</p>
                 </div>
             </div>
         </div>
 
         <div class="flex justify-end mt-12">
-            <button class="bg-red-500 text-white px-4 py-2 rounded-2xl mr-2">Cancel</button>
-            <button class="bg-green-500 text-white px-4 py-2 rounded-2xl">Confirm</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-2xl mr-2" v-on:click="submit(false)">Cancel</button>
+            <button class="bg-green-500 text-white px-4 py-2 rounded-2xl" v-on:click="submit(true)">Confirm</button>
         </div>
 
     </div>

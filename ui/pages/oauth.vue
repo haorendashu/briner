@@ -6,6 +6,9 @@ import { ConnectType } from '../../business/consts/connect_type'
 
 let origin = '';
 let requestId = '';
+let authType = '';
+let eventKind = '';
+let params = ''
 let always = ref(false)
 let showMore = ref(false)
 
@@ -13,6 +16,9 @@ onMounted(() => {
     let qs = new URLSearchParams(location.search)
     origin = qs.get('origin') || ''
     requestId = qs.get('requestId') || ''
+    authType = qs.get('authType') || ''
+    eventKind = qs.get('eventKind') || ''
+    params = qs.get('params') || ''
 })
 
 const selectedUserPubkey = ref('')
@@ -50,7 +56,7 @@ const handleUserChange = (pubkey: string) => {
         </div>
         <div v-if="!showMore" class="h-30"></div>
         <div v-if="showMore" class="h-30 p-2 bg-gray-300 rounded-md overflow-hide">
-            Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }}Request ID: {{ requestId }} Request ID: {{ requestId }} Request ID: {{ requestId }}
+            {{ params }}
         </div>
 
         <div class="mt-6">

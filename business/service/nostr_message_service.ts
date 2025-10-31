@@ -1,6 +1,8 @@
 import { AuthResult } from '../consts/auth_result'
 import { AuthType } from '../consts/auth_type'
 import { ConnectType } from '../consts/connect_type'
+import { OtherMessageType } from '../consts/other_message_type'
+import { App } from '../data/app'
 import { appManager } from '../data/app_manager'
 import type { ISigner } from '../nostr_signer/isigner'
 
@@ -19,7 +21,7 @@ export class NostrMessageService {
 
     shouldBeHandled(message: any): boolean {
         let messageType = message.type
-        if (messageType == 'CONNECTION_RESULT' || messageType == 'PERMISSION_RESULT') {
+        if (messageType == OtherMessageType.CONNECTION_RESULT || messageType == OtherMessageType.PERMISSION_RESULT) {
             return true;
         }
 
@@ -31,11 +33,11 @@ export class NostrMessageService {
     }
 
     async handle(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void): Promise<boolean> {
-        if (message.type === 'CONNECTION_RESULT') {
-            this.handleConnectionResult(message.requestId, message.success, message.appData);
+        if (message.type === OtherMessageType.CONNECTION_RESULT) {
+            this.handleConnectionResult(message.requestId, message);
             sendResponse({ success: true });
             return true;
-        } else if (message.type === 'PERMISSION_RESULT') {
+        } else if (message.type === OtherMessageType.PERMISSION_RESULT) {
             this.handlePermissionResult(message.requestId, message.allowed);
             sendResponse({ success: true });
             return true;
@@ -159,10 +161,13 @@ export class NostrMessageService {
             const requestId = this.genRequestId()
 
             // 存储Promise解析器
-            this.pendingPermissions.set(requestId, { resolve, reject });
+            this.pendingPermissions.set(requestId, { resolve, reject })
+
+            let params = message.params
+            let paramsStr = JSON.stringify(params)
 
             // 打开权限确认窗口（这里需要你实现具体的权限确认界面）
-            const permissionUrl = this.buildPermissionUrl(origin, authType, eventKind, requestId);
+            const permissionUrl = this.buildPermissionUrl(origin, authType, eventKind, requestId, paramsStr);
             chrome.windows.create({
                 url: permissionUrl,
                 type: 'popup',
@@ -183,28 +188,42 @@ export class NostrMessageService {
     }
 
     // 处理连接结果
-    private handleConnectionResult(requestId: string, success: boolean, appData?: any): void {
+    private async handleConnectionResult(requestId: string, message: any): Promise<void> {
         const pendingConnection = this.pendingConnections.get(requestId);
         if (!pendingConnection) {
             console.warn('No pending connection found for:', requestId);
             return;
         }
 
-        if (success && appData) {
-            // 连接成功，保存app数据
-            this.saveAppData(appData).then(() => {
-                pendingConnection.resolve(appData);
-            }).catch((error) => {
-                console.error('Failed to save app data:', error);
-                pendingConnection.reject('Failed to save app connection');
-            });
-        } else {
-            // 连接失败
-            pendingConnection.reject('App connection failed or was cancelled');
-        }
-
         // 清理pending连接
         this.pendingConnections.delete(requestId);
+
+        if (message != null && message.origin && message.pubkey && message.connectType) {
+            let origin = message.origin
+            let connectType = message.connectType
+            let pubkey = message.pubkey
+
+            if (connectType == ConnectType.FULLY_TRUST || connectType == ConnectType.REASONABLE || connectType == ConnectType.ALWAY_REJECT) {
+                let app = new App()
+                app.pubkey = pubkey
+                app.code = origin
+                app.connectType = connectType
+
+                if (connectType == ConnectType.REASONABLE) {
+                    // config default permission
+                    app.alwaysAllow = '1;3;4;5;6;7;2-22242'
+                }
+
+                let saveResult = await appManager.save(app)
+                if (saveResult) {
+                    pendingConnection.resolve(app);
+                    return;
+                }
+            }
+        }
+
+        // 连接失败
+        pendingConnection.reject('App connection failed or was cancelled');
     }
 
     // 处理权限结果
@@ -221,20 +240,13 @@ export class NostrMessageService {
 
     // 构建连接URL
     private buildConnectUrl(origin: string, requestId: string): string {
+        console.log("good!")
         return chrome.runtime.getURL(`/pages/connect.html?origin=${encodeURIComponent(origin)}&requestId=${requestId}`);
     }
 
     // 构建权限确认URL
-    private buildPermissionUrl(origin: string, authType: AuthType, eventKind: number | undefined, requestId: string): string {
-        return chrome.runtime.getURL(`/pages/oauth.html?origin=${encodeURIComponent(origin)}&authType=${authType}&eventKind=${eventKind || ''}&requestId=${requestId}`);
-    }
-
-    // 保存app数据
-    private async saveAppData(appData: any): Promise<void> {
-        // const App = await import('../data/app');
-        // const app = new App.default();
-        // Object.assign(app, appData);
-        // await appManager.saveApp(app);
+    private buildPermissionUrl(origin: string, authType: AuthType, eventKind: number | undefined, requestId: string, paramsStr: string): string {
+        return chrome.runtime.getURL(`/pages/oauth.html?origin=${encodeURIComponent(origin)}&authType=${authType}&eventKind=${eventKind || ''}&requestId=${requestId}&params=${paramsStr}`);
     }
 
     // 执行具体的认证操作
