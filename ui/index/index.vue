@@ -6,12 +6,19 @@ import UsernameComponent from '../components/username_component.vue'
 import { useRouter } from 'vue-router'
 import { userManager } from '../../business/data/user_manager'
 import { ref, onMounted } from 'vue'
+import { appManager } from '../../business/data/app_manager'
+import type { User } from '../../business/data/user'
+import type { App } from '../../business/data/app'
 
 const router = useRouter()
 
 // 响应式用户数据
-const users = ref<any[]>([])
+const users = ref<User[]>([])
 const userCount = ref(0)
+
+
+const apps = ref<App[]>([])
+const appCount = ref(0)
 
 const toUsersPage = () => {
     router.push('/users')
@@ -32,9 +39,20 @@ const toAddUser = () => {
     router.push('/users/addUser')
 }
 
+const loadApps = async () => {
+    try {
+        await appManager.initialize()
+        apps.value = appManager.getAll()
+        appCount.value = appManager.getCount()
+    }catch (e) {
+        console.error('Failed to load apps:', e)
+    }
+}
+
 // 组件挂载时加载数据
 onMounted(async () => {
     await loadUsers()
+    await loadApps()
     
     // 设置存储变化监听器
     chrome.storage.onChanged.addListener((changes, namespace) => {
