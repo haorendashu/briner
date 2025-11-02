@@ -16,9 +16,7 @@ const router = useRouter()
 const users = ref<User[]>([])
 const userCount = ref(0)
 
-
 const apps = ref<App[]>([])
-const appCount = ref(0)
 
 const toUsersPage = () => {
     router.push('/users')
@@ -42,8 +40,11 @@ const toAddUser = () => {
 const loadApps = async () => {
     try {
         await appManager.initialize()
-        apps.value = appManager.getAll()
-        appCount.value = appManager.getCount()
+        let allApps = appManager.getAll()
+        if (allApps.length > 5) {
+            allApps = allApps.slice(0, 5)
+        }
+        apps.value = allApps
     }catch (e) {
         console.error('Failed to load apps:', e)
     }
@@ -59,6 +60,7 @@ onMounted(async () => {
         if (namespace === 'local' && changes['briner_users']) {
             console.log('Storage changed, reloading users...')
             loadUsers()
+            loadApps()
         }
     })
 })
@@ -102,12 +104,7 @@ onMounted(async () => {
 
     <div class="container">
         <div class="card mt-4">
-            <AppItemComponent />
-            <AppItemComponent />
-            <AppItemComponent />
-            <AppItemComponent />
-            <AppItemComponent />
-            <AppItemComponent />
+            <AppItemComponent v-for="app in apps" :app="app" />
 
             <div class="item justify-center">
                 <RouterLink to="/apps" class="mr-4">Show more apps</RouterLink>

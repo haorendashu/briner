@@ -1,10 +1,10 @@
 <template>
-    <div class="item item-border" v-on:click="handleClick">
+    <div :class="isLast ? 'item' : 'item item-border'" v-on:click="handleClick">
         <div class="font-bold">
-            APP 名称
+            {{ app.name ? app.name : app.code }}
         </div>
         <div class="ml-auto">
-            <p class="text-lg">&gt;</p>
+            <p class="text-lg">></p>
         </div>
     </div>
 </template>
@@ -12,12 +12,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import type { App } from '../../business/data/app';
 const router = useRouter()
 
 // 定义组件props
 interface Props {
-//   imageUrl: string
+  app: App,
+  isLast?: boolean
 }
+
+// 定义props
+const props = withDefaults(defineProps<Props>(), {
+  isLast: false,
+})
 
 // 监听图片URL变化
 onMounted(() => {
@@ -25,7 +32,7 @@ onMounted(() => {
 })
 
 const handleClick = () => {
-    router.push('/apps/123');
+    router.push(`/apps/${props.app.code}`);
 }
 </script>
 
