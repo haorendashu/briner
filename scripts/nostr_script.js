@@ -27,21 +27,21 @@ window.nostr = {
 
     nip04: {
         async encrypt(pubkey, plaintext) {
-            return window.nostr._call(this.NIP04_ENCRYPT, { 'pubkey': pubkey, 'text': plaintext })
+            return window.nostr._call(nostr.NIP04_ENCRYPT, { 'pubkey': pubkey, 'text': plaintext })
         },
 
         async decrypt(pubkey, ciphertext) {
-            return window.nostr._call(this.NIP04_DECRYPT, { 'pubkey': pubkey, 'text': ciphertext })
+            return window.nostr._call(nostr.NIP04_DECRYPT, { 'pubkey': pubkey, 'text': ciphertext })
         }
     },
 
     nip44: {
         async encrypt(pubkey, plaintext) {
-            return window.nostr._call(this.NIP44_ENCRYPT, { 'pubkey': pubkey, 'text': plaintext })
+            return window.nostr._call(nostr.NIP44_ENCRYPT, { 'pubkey': pubkey, 'text': plaintext })
         },
 
         async decrypt(pubkey, ciphertext) {
-            return window.nostr._call(this.NIP44_DECRYPT, { 'pubkey': pubkey, 'text': ciphertext })
+            return window.nostr._call(nostr.NIP44_DECRYPT, { 'pubkey': pubkey, 'text': ciphertext })
         }
     },
 
