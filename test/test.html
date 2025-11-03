@@ -14,6 +14,7 @@
     <button onclick="testNIP44Decrypt()">Test NIP44 decrypt</button>
     <button onclick="testNIP04Encrypt()">Test NIP04 encrypt</button>
     <button onclick="testNIP04Decrypt()">Test NIP04 decrypt</button>
+    <button onclick="testSignEvent()">Test Sign Event</button>
     <script>
         var result = '';
 
@@ -60,6 +61,19 @@
             if (window.nostr) {
                 window.nostr.nip04.decrypt('29320975df855fe34a7b45ada2421e2c741c37c0136901fe477133a91eb18b07', result).then(decrypted => {
                     console.log("decrypted:", decrypted);
+                })
+            }
+        }
+
+        function testSignEvent() {
+            if (window.nostr) {
+                window.nostr.signEvent({
+                    kind: 1,
+                    tags: [],
+                    content: "Hello, world!",
+                    created_at: Math.floor(Date.now() / 1000),
+                }).then(event => {
+                    console.log("signed event:", event);
                 })
             }
         }
