@@ -2,8 +2,9 @@
   <div class="relative">
     <!-- 下拉框触发器 -->
     <div 
-      class="flex items-center justify-between p-2 cursor-pointer transition-colors"
-      @click="toggleDropdown"
+      class="flex items-center justify-between p-2 transition-colors"
+      :class="disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+      @click="!disabled && toggleDropdown()"
     >
       <div class="flex items-center">
         <CircleImageComponent
@@ -19,6 +20,7 @@
         </span>
       </div>
       <svg 
+        v-if="!disabled"
         class="w-4 h-4 text-gray-500 transition-transform" 
         :class="{ 'rotate-180': isOpen }"
         fill="none" 
@@ -31,7 +33,7 @@
 
     <!-- 下拉菜单 -->
     <div 
-      v-if="isOpen" 
+      v-if="isOpen && !disabled" 
       class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto"
     >
       <!-- 搜索框 -->
@@ -106,6 +108,7 @@ import { nip19 } from 'nostr-tools'
 interface Props {
   modelValue?: string // 选中的用户pubkey
   placeholder?: string
+  disabled?: boolean // 新增：是否禁用选择
 }
 
 interface Emits {
@@ -114,7 +117,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '请选择用户'
+  placeholder: 'Select User',
+  disabled: false
 })
 
 const emit = defineEmits<Emits>()
@@ -193,6 +197,7 @@ const loadUsers = async () => {
 
 // 切换下拉框显示状态
 const toggleDropdown = () => {
+  if (props.disabled) return
   isOpen.value = !isOpen.value
   if (isOpen.value) {
     searchQuery.value = ''
@@ -201,10 +206,18 @@ const toggleDropdown = () => {
 
 // 选择用户
 const selectUser = (user: User) => {
+  if (props.disabled) return
   selectedUser.value = user
   emitSelection()
   isOpen.value = false
   searchQuery.value = ''
+}
+
+// 添加新用户
+const addNewUser = () => {
+  if (props.disabled) return
+  isOpen.value = false
+  router.push('/users/addUser')
 }
 
 // 发射选择事件
@@ -213,12 +226,6 @@ const emitSelection = () => {
     emit('update:modelValue', selectedUser.value.pubkey)
     emit('change', selectedUser.value.pubkey)
   }
-}
-
-// 添加新用户
-const addNewUser = () => {
-  isOpen.value = false
-  router.push('/users/addUser')
 }
 
 // 监听外部点击关闭下拉框
