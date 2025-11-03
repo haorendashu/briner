@@ -171,8 +171,8 @@ export class NostrMessageService {
             chrome.windows.create({
                 url: permissionUrl,
                 type: 'popup',
-                width: 350,
-                height: 500
+                width: 400,
+                height: 600
             }).then((window) => {
                 console.log('Permission window opened:', window);
             }).catch((error) => {
