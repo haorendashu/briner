@@ -1,5 +1,5 @@
 <template>
-    <div class="flex items-center justify-between container bg-white pt-2 pb-2 pl-3 pr-3">
+    <div class="flex items-center justify-between container bg-white p-3 rounded-br-2xl rounded-bl-2xl">
         <div class="flex items-center">
             <a v-if="showBack == 'true'" @click="$router.go(-1)" href="javascript:void(0)" class="mr-4 px-2 font-bold text-xl"><</a>
             <h1 class="text-xl">{{ title }}</h1>
