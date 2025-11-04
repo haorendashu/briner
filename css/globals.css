@@ -31,3 +31,7 @@
 .auth_result {
     @apply text-white rounded-lg pt-1 pb-1 pl-2 pr-2
 }
+
+.permissionItem {
+    @apply inline-block mb-3 mr-3 cursor-pointer bg-gray-300 pl-2 pr-2 pt-1 pb-1 rounded-md
+}
