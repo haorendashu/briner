@@ -32,7 +32,8 @@ onMounted(() => {
 })
 
 const handleClick = () => {
-    router.push(`/apps/${props.app.code}`);
+    const encodedValue = encodeURIComponent(props.app.code!)
+    router.push(`/apps/${encodedValue}`);
 }
 </script>
 
