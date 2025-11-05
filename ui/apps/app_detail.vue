@@ -96,9 +96,23 @@ const submit = (confirm: boolean)  => {
 
     router.back()
 }
+
+const deleteApp = () => {
+    if (!app || !app.value || !app.value.code) {
+        return
+    }
+
+    appManager.delete(app.value?.code!)
+    router.back()
+}
+
 </script>
 <template>
-    <AppBarComponent title="Edit App"></AppBarComponent>
+    <AppBarComponent title="Edit App">
+        <template #right>
+            <img src="/imgs/delete.png" style="width: 20px; height: 20px;" class="cursor-pointer ml-2 mr-2" v-on:click="deleteApp()" />
+        </template>
+    </AppBarComponent>
     <div class="container mb-4">
         <div class="card mt-4">
             <div v-if="app" class="p-4">
