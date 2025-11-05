@@ -7,6 +7,7 @@ import type { App } from '../../business/data/app';
 import { appManager } from '../../business/data/app_manager';
 import { ConnectType } from '../../business/consts/connect_type';
 import { AuthResult } from '../../business/consts/auth_result';
+import router from '../router_builder';
 
 const app = ref<App>()
 const route = useRoute()
@@ -79,7 +80,21 @@ const getPermissionName = (permissionStr : string) => {
 }
 
 const submit = (confirm: boolean)  => {
+    let appValue = app.value
+    if (confirm && appValue) {
+        let permissionMap = new Map<string, number>()
+        for (let permission of allows.value) {
+            permissionMap.set(permission, AuthResult.OK)
+        }
+        for (let permission of rejects.value) {
+            permissionMap.set(permission, AuthResult.REJECT)
+        }
 
+        appManager.updatePermissionsToApp(permissionMap, appValue)
+        appManager.save(appValue)
+    }
+
+    router.back()
 }
 </script>
 <template>
