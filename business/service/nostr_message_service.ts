@@ -1,6 +1,6 @@
 import { AuthResult } from '../consts/auth_result'
 import { AuthType } from '../consts/auth_type'
-import { ConnectType } from '../consts/connect_type'
+import { ConnectType, DEFAULT_PERMISSION } from '../consts/connect_type'
 import { OtherMessageType } from '../consts/other_message_type'
 import { App } from '../data/app'
 import { appManager } from '../data/app_manager'
@@ -211,7 +211,7 @@ export class NostrMessageService {
 
                 if (connectType == ConnectType.REASONABLE) {
                     // config default permission
-                    app.alwaysAllow = '1;3;4;5;6;7;2-22242'
+                    app.alwaysAllow = DEFAULT_PERMISSION
                 }
 
                 let saveResult = await appManager.save(app)
@@ -240,7 +240,6 @@ export class NostrMessageService {
 
     // 构建连接URL
     private buildConnectUrl(origin: string, requestId: string): string {
-        console.log("good!")
         return chrome.runtime.getURL(`/pages/connect.html?origin=${encodeURIComponent(origin)}&requestId=${requestId}`);
     }
 

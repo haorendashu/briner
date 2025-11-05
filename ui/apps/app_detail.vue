@@ -5,7 +5,7 @@ import AppBarComponent from '../components/app_bar_component.vue'
 import UserSelectComponent from '../components/user_select_component.vue'
 import type { App } from '../../business/data/app';
 import { appManager } from '../../business/data/app_manager';
-import { ConnectType } from '../../business/consts/connect_type';
+import { ConnectType, DEFAULT_PERMISSION } from '../../business/consts/connect_type';
 import { AuthResult } from '../../business/consts/auth_result';
 import router from '../router_builder';
 
@@ -82,15 +82,24 @@ const getPermissionName = (permissionStr : string) => {
 const submit = (confirm: boolean)  => {
     let appValue = app.value
     if (confirm && appValue) {
-        let permissionMap = new Map<string, number>()
-        for (let permission of allows.value) {
-            permissionMap.set(permission, AuthResult.OK)
-        }
-        for (let permission of rejects.value) {
-            permissionMap.set(permission, AuthResult.REJECT)
-        }
+        if (appValue.connectType == ConnectType.ALWAY_REJECT || appValue.connectType == ConnectType.FULLY_TRUST) {
+            appValue.alwaysAllow = ''
+            appValue.alwaysReject = ''
+        } else {
+            let permissionMap = new Map<string, number>()
+            for (let permission of allows.value) {
+                permissionMap.set(permission, AuthResult.OK)
+            }
+            for (let permission of rejects.value) {
+                permissionMap.set(permission, AuthResult.REJECT)
+            }
 
-        appManager.updatePermissionsToApp(permissionMap, appValue)
+            appManager.updatePermissionsToApp(permissionMap, appValue)
+
+            if (!appValue.alwaysAllow || appValue.alwaysAllow == '') {
+                appValue.alwaysAllow = DEFAULT_PERMISSION
+            }
+        }
         appManager.save(appValue)
     }
 
