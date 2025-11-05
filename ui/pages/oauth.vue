@@ -90,7 +90,7 @@ const submit = (allowed: boolean) => {
     <div class="pl-4 pr-4 pt-4 pb-2">
         <UserSelectComponent 
             v-model="selectedUserPubkey"
-            disabled:=true
+            :disabled=true
             @change="handleUserChange"
         />
     </div>

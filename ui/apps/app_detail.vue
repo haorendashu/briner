@@ -128,7 +128,7 @@ const deleteApp = () => {
                 
                 <div class="flex items-center mb-4 container">
                     <span class="form-label fw-bold mr-4">Pubkey:</span>
-                    <UserSelectComponent v-model="app.pubkey" placeholder="Select User" disabled:=true />
+                    <UserSelectComponent v-model="app.pubkey" placeholder="Select User" :disabled=true />
                 </div>
                 
                 <div class="mb-4 container">
