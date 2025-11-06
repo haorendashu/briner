@@ -8,8 +8,8 @@
                 {{ authLog.authResult == AuthResult.OK ? 'Approve' : 'Reject' }}
             </div>
         </div>
-        <div class="w-auto">
-            <p>{{ authContent }}</p>
+        <div class="flex-1 min-w-0">
+            <p class="truncate">{{ authContent }}</p>
         </div>
         <div class="ml-auto">
             <p class="text-lg">&gt;</p>
@@ -65,4 +65,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 </style>
