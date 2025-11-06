@@ -9,7 +9,7 @@
             </div>
         </div>
         <div class="w-auto">
-            <p></p>
+            <p>{{ authContent }}</p>
         </div>
         <div class="ml-auto">
             <p class="text-lg">&gt;</p>
