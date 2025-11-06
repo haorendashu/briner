@@ -112,11 +112,20 @@ export class NostrMessageService {
         }
 
         try {
+            let authContent = ''
+            if (authType == AuthType.SIGN_EVENT) {
+                authContent = JSON.stringify(params)
+            } else if (authType == AuthType.SIGN_EVENT) {
+                authContent = JSON.stringify(params)
+            } else if (authType != AuthType.GET_PUBLIC_KEY && params.text) {
+                authContent = params.text;
+            }
+
             let authLog = new AuthLog()
             authLog.appCode = app.code
             authLog.authType = authType
             authLog.eventKind = eventKind
-            authLog.content = JSON.stringify(params)
+            authLog.content = authContent
             authLog.authResult = permissionCheckPass ? AuthResult.OK : AuthResult.REJECT
             authLogManager.add(authLog)
         } catch (e) {
