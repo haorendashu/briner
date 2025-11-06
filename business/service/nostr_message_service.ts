@@ -4,6 +4,8 @@ import { ConnectType, DEFAULT_PERMISSION } from '../consts/connect_type'
 import { OtherMessageType } from '../consts/other_message_type'
 import { App } from '../data/app'
 import { appManager } from '../data/app_manager'
+import { AuthLog } from '../data/auth_log'
+import { authLogManager } from '../data/auth_log_manager'
 import type { ISigner } from '../nostr_signer/isigner'
 
 export class NostrMessageService {
@@ -80,13 +82,13 @@ export class NostrMessageService {
         }
 
         // 2. 检查权限
+        let eventKind: number | undefined = undefined;
         let permissionCheckPass = false;
         if (app.connectType == ConnectType.FULLY_TRUST) {
             permissionCheckPass = true;
         } else if (app.connectType == ConnectType.ALWAY_REJECT) {
             permissionCheckPass = false;
         } else {
-            let eventKind: number | undefined = undefined;
             if (authType == AuthType.SIGN_EVENT) {
                 eventKind = params.kind
             }
@@ -107,6 +109,18 @@ export class NostrMessageService {
                     return true;
                 }
             }
+        }
+
+        try {
+            let authLog = new AuthLog()
+            authLog.appCode = app.code
+            authLog.authType = authType
+            authLog.eventKind = eventKind
+            authLog.content = JSON.stringify(params)
+            authLog.authResult = permissionCheckPass ? AuthResult.OK : AuthResult.REJECT
+            authLogManager.add(authLog)
+        } catch (e) {
+            console.error('Add auth log failed:', e);
         }
 
         if (!permissionCheckPass) {
@@ -301,5 +315,4 @@ export class NostrMessageService {
         }
     }
 
-    saveAuthLog() { }
 }

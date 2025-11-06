@@ -9,6 +9,8 @@ import { ref, onMounted } from 'vue'
 import { appManager } from '../../business/data/app_manager'
 import type { User } from '../../business/data/user'
 import type { App } from '../../business/data/app'
+import { authLogManager } from '../../business/data/auth_log_manager'
+import type { AuthLog } from '../../business/data/auth_log'
 
 const router = useRouter()
 
@@ -17,6 +19,8 @@ const users = ref<User[]>([])
 const userCount = ref(0)
 
 const apps = ref<App[]>([])
+
+const authLogs = ref<AuthLog[]>([])
 
 const toUsersPage = () => {
     router.push('/users')
@@ -45,24 +49,35 @@ const loadApps = async () => {
             allApps = allApps.slice(0, 5)
         }
         apps.value = allApps
-    }catch (e) {
+    } catch (e) {
         console.error('Failed to load apps:', e)
+    }
+}
+
+const loadAuthLogs = async () => {
+    try {
+        authLogs.value = await authLogManager.getRecent(10)
+    } catch (error) {
+        console.error('Failed to load auth logs:', error)
     }
 }
 
 // 组件挂载时加载数据
 onMounted(async () => {
-    await loadUsers()
-    await loadApps()
-    
     // 设置存储变化监听器
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && changes['briner_users']) {
             console.log('Storage changed, reloading users...')
             loadUsers()
+        } else if (namespace === 'local' && changes['briner_apps']) {
+            console.log('Storage changed, reloading users...')
             loadApps()
         }
     })
+    
+    await loadUsers()
+    await loadApps()
+    await loadAuthLogs()
 })
 </script>
 
@@ -114,12 +129,7 @@ onMounted(async () => {
 
     <div class="container">
         <div class="card mt-4">
-            <AuthLogItemComponent />
-            <AuthLogItemComponent />
-            <AuthLogItemComponent />
-            <AuthLogItemComponent />
-            <AuthLogItemComponent />
-            <AuthLogItemComponent />
+            <AuthLogItemComponent v-for="authLog in authLogs" :authLog="authLog" />
 
             <div class="item justify-center">
                 <RouterLink to="/logs" class="mr-4">Show more logs</RouterLink>
