@@ -56,7 +56,7 @@ const loadApps = async () => {
 
 const loadAuthLogs = async () => {
     try {
-        authLogs.value = await authLogManager.getRecent(10)
+        authLogs.value = await authLogManager.getRecent(1, 10)
     } catch (error) {
         console.error('Failed to load auth logs:', error)
     }

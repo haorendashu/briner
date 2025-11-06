@@ -217,8 +217,8 @@ export class AuthLogManager {
         });
     }
 
-    // 获取最近 N 条认证日志
-    async getRecentAuthLogs(limit: number = 50): Promise<AuthLog[]> {
+    // 获取最近 N 条认证日志（带分页）
+    async getRecentAuthLogs(page: number = 1, pageSize: number = 20): Promise<AuthLog[]> {
         if (!this.initialized) {
             await this.initialize();
         }
@@ -235,14 +235,26 @@ export class AuthLogManager {
             const request = index.openCursor(null, 'prev'); // 从最新开始
 
             const results: AuthLog[] = [];
-            let count = 0;
+            const startIndex = (page - 1) * pageSize;
+            let currentIndex = 0;
 
             request.onsuccess = () => {
                 const cursor = request.result;
-                if (cursor && count < limit) {
-                    results.push(cursor.value);
-                    count++;
-                    cursor.continue();
+                if (cursor) {
+                    // 跳过前面的记录
+                    if (currentIndex < startIndex) {
+                        currentIndex++;
+                        cursor.continue();
+                        return;
+                    }
+
+                    // 收集当前页的记录
+                    if (results.length < pageSize) {
+                        results.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        resolve(results);
+                    }
                 } else {
                     resolve(results);
                 }
@@ -392,7 +404,7 @@ export const authLogManager = {
     getById: (id: number) => defaultAuthLogManager.getAuthLogById(id),
     getAll: () => defaultAuthLogManager.getAllAuthLogs(),
     getByAppCode: (appCode: number, page?: number, pageSize?: number) => defaultAuthLogManager.getAuthLogsByAppCode(appCode, page, pageSize),
-    getRecent: (limit?: number) => defaultAuthLogManager.getRecentAuthLogs(limit),
+    getRecent: (page: number = 1, pageSize: number = 20) => defaultAuthLogManager.getRecentAuthLogs(page, pageSize),
 
     // 删除日志
     delete: (id: number) => defaultAuthLogManager.deleteAuthLog(id),
