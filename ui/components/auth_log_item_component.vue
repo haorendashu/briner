@@ -3,7 +3,7 @@
         <div class="w-1/4">
             {{ authLog.appCode }}
         </div>
-        <div class="mr-4">
+        <div class="mr-5">
             <div :class="{'bg-red-500': authLog.authResult == AuthResult.REJECT, 'bg-green-500': authLog.authResult == AuthResult.OK, auth_result: true }">
                 {{ authLog.authResult == AuthResult.OK ? 'Approve' : 'Reject' }}
             </div>
@@ -11,7 +11,7 @@
         <div class="flex-1 min-w-0">
             <p class="truncate">{{ authContent }}</p>
         </div>
-        <div class="ml-auto">
+        <div class="ml-auto pl-5">
             <p class="text-lg">&gt;</p>
         </div>
     </div>
@@ -58,7 +58,7 @@ onMounted(() => {
     }
     
     if (props.authLog.content && props.authLog.content != '') {
-        content += ' ' + props.authLog.content
+        content += ' : ' + props.authLog.content
     }
     authContent.value = content
 })
