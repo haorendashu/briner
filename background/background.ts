@@ -60,27 +60,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-    // TODO handle other message type
-
-    // let origin = sender.origin
-    // let url = sender.url
-
-    // let id = message.id
-    // let type = message.type
-    // let params = message.params
-
-    // switch (type) {
-    //     case 'getPublicKey':
-    //         {
-    //             signer?.getPublicKey().then((res) => {
-    //                 console.log('getPublicKey:', res)
-    //                 sendResponse({ id: id, response: res })
-    //             })
-    //             break;
-    //         }
-    // }
-
-    // sendResponse({ id: id, response: "Hello from background script!" });
-    // chrome.action.openPopup()
-    return true;
+    return false;
 });

@@ -44,7 +44,7 @@ const initChromeMessageListener = async () => {
             return true;
         }
 
-        return true;
+        return false;
     });
     
     initedListenMessage.value = true
