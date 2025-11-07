@@ -72,7 +72,7 @@ const selectedUserPubkey = ref('')
 const handleUserChange = (pubkey: string) => {
 }
 
-const submit = (allowed: boolean) => {
+const submit = async (allowed: boolean) => {
     console.log('confirm:', confirm)
     let message = {
         origin: origin,
@@ -80,7 +80,7 @@ const submit = (allowed: boolean) => {
         type: OtherMessageType.PERMISSION_RESULT,
         allowed: allowed,
     }
-    chrome.runtime.sendMessage(message)
+    await chrome.runtime.sendMessage(message)
     
     window.close()
 }

@@ -24,7 +24,7 @@ const selectType = (t: ConnectType) => {
     connectType.value = t
 }
 
-const submit = (confirm: boolean) => {
+const submit = async (confirm: boolean) =>  {
     console.log('connectType:', connectType.value)
     let message = {
         origin: origin,
@@ -36,7 +36,7 @@ const submit = (confirm: boolean) => {
     if (confirm) {
         message.connectType = connectType.value   
     }
-    chrome.runtime.sendMessage(message)
+    await chrome.runtime.sendMessage(message)
 
     window.close()
 }
