@@ -43,8 +43,8 @@ userManager.initialize().then(() => {
 
     if (hasHardwareUser) {
         // open hardware login page
-        let oauthUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
-        chrome.windows.create({ url: oauthUrl, type: 'normal' }) // the popup type windows can't getSerialPort
+        let authUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
+        chrome.windows.create({ url: authUrl, type: 'normal' }) // the popup type windows can't getSerialPort
     }
 })
 

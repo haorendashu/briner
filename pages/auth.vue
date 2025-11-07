@@ -8,7 +8,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 onMounted(() => {
-    router.push('/pages/oauth')
+    router.push('/pages/auth')
 })
 </script>
 <template>

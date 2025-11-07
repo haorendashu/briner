@@ -278,7 +278,7 @@ export class NostrMessageService {
 
     // 构建权限确认URL
     private buildPermissionUrl(origin: string, authType: AuthType, eventKind: number | undefined, requestId: string, paramsStr: string): string {
-        return chrome.runtime.getURL(`/pages/oauth.html?origin=${encodeURIComponent(origin)}&authType=${authType}&eventKind=${eventKind || ''}&requestId=${requestId}&params=${paramsStr}`);
+        return chrome.runtime.getURL(`/pages/auth.html?origin=${encodeURIComponent(origin)}&authType=${authType}&eventKind=${eventKind || ''}&requestId=${requestId}&params=${paramsStr}`);
     }
 
     // 执行具体的认证操作
