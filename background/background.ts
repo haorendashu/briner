@@ -14,7 +14,7 @@ console.log('Hello from the background script!')
 let nostrMessageService: NostrMessageService;
 
 userManager.initialize().then(() => {
-    nostrMessageService = new NostrMessageService();
+    nostrMessageService = new NostrMessageService(true);
 
     let hasHardwareUser = false;
     let allUser = userManager.getAll()

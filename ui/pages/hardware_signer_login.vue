@@ -7,7 +7,7 @@ import { NesignerSigner } from '../../business/nostr_signer/nesigner_signer'
 
 const nesignerPinCode = ref("")
 const showInput = ref(false)
-const nostrMessageService = new NostrMessageService();
+const nostrMessageService = new NostrMessageService(false);
 const initedListenMessage = ref(false)
 
 const hardwareUserLogin = async () => {

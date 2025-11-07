@@ -10,6 +10,8 @@ import type { ISigner } from '../nostr_signer/isigner'
 
 export class NostrMessageService {
 
+    private handleConnectMessage: boolean = true;
+
     // key - value : pubkey, ISigner
     private signers: Map<String, ISigner> = new Map();
     // 存储等待连接完成的Promise解析器
@@ -17,13 +19,18 @@ export class NostrMessageService {
     // 存储等待权限确认的Promise解析器
     private pendingPermissions: Map<string, { resolve: (allowed: boolean) => void, reject: (error: string) => void }> = new Map();
 
+    constructor(handleConnectMessage: boolean) {
+        this.handleConnectMessage = handleConnectMessage;
+    }
+
     addSigner(pubkey: string, signer: ISigner) {
         this.signers.set(pubkey, signer)
     }
 
     shouldBeHandled(message: any): boolean {
         let messageType = message.type
-        if (messageType == OtherMessageType.CONNECTION_RESULT || messageType == OtherMessageType.PERMISSION_RESULT) {
+        if ((this.handleConnectMessage && messageType == OtherMessageType.CONNECTION_RESULT)
+            || messageType == OtherMessageType.PERMISSION_RESULT) {
             return true;
         }
 
@@ -59,7 +66,7 @@ export class NostrMessageService {
 
         // 1. 检查app是否存在，如果不存在则等待连接
         let app = appManager.getByCode(origin);
-        if (!app || !app.pubkey || !app.code) {
+        if (this.handleConnectMessage && (!app || !app.pubkey || !app.code)) {
             try {
                 // 异步等待app连接完成
                 app = await this.waitForAppConnection(origin, message, sender);
@@ -73,6 +80,10 @@ export class NostrMessageService {
                 sendResponse({ id: id, error: error });
                 return true;
             }
+        }
+        if (!app || !app.pubkey || !app.code) {
+            sendResponse({ id: id, error: 'App connection failed: app is undefined' });
+            return true;
         }
 
         let signer = this.signers.get(app.pubkey);
@@ -253,7 +264,6 @@ export class NostrMessageService {
     private handlePermissionResult(requestId: string, allowed: boolean): void {
         const pendingPermission = this.pendingPermissions.get(requestId);
         if (!pendingPermission) {
-            console.warn('No pending permission found for:', requestId);
             return;
         }
 
