@@ -10,14 +10,16 @@ import type { ISigner } from '../nostr_signer/isigner'
 
 export class NostrMessageService {
 
-    private handleConnectMessage: boolean = true;
+    private handleConnectMessage: boolean = true
 
     // key - value : pubkey, ISigner
-    private signers: Map<String, ISigner> = new Map();
+    private signers: Map<String, ISigner> = new Map()
     // 存储等待连接完成的Promise解析器
-    private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map();
+    private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map()
     // 存储等待权限确认的Promise解析器
-    private pendingPermissions: Map<string, { resolve: (allowed: boolean) => void, reject: (error: string) => void }> = new Map();
+    private pendingPermissions: Map<string, { resolve: (allowed: boolean) => void, reject: (error: string) => void }> = new Map()
+    // the penddingPermission
+    private pendingAlways: Map<string, boolean> = new Map()
 
     constructor(handleConnectMessage: boolean) {
         this.handleConnectMessage = handleConnectMessage;
@@ -47,7 +49,7 @@ export class NostrMessageService {
             sendResponse({ success: true });
             return true;
         } else if (message.type === OtherMessageType.PERMISSION_RESULT) {
-            this.handlePermissionResult(message.requestId, message.allowed);
+            this.handlePermissionResult(message.requestId, message.allowed, message.always);
             sendResponse({ success: true });
             return true;
         }
@@ -93,8 +95,9 @@ export class NostrMessageService {
         }
 
         // 2. 检查权限
-        let eventKind: number | undefined = undefined;
-        let permissionCheckPass = false;
+        let eventKind: number | undefined = undefined
+        let permissionCheckPass = false
+        let alwaysPermission: boolean | undefined = false
         if (app.connectType == ConnectType.FULLY_TRUST) {
             permissionCheckPass = true;
         } else if (app.connectType == ConnectType.ALWAY_REJECT) {
@@ -106,18 +109,22 @@ export class NostrMessageService {
 
             let authResult = appManager.checkPermission(app.code, authType, eventKind)
             if (authResult == AuthResult.OK) {
-                permissionCheckPass = true;
+                permissionCheckPass = true
             } else if (authResult == AuthResult.REJECT) {
-                permissionCheckPass = false;
+                permissionCheckPass = false
             } else if (authResult == AuthResult.ASK) {
                 // 异步等待权限确认
                 try {
-                    permissionCheckPass = await this.waitForPermission(origin, authType, eventKind, message, sender);
-                    console.log('Permission result:', permissionCheckPass);
+                    const requestId = this.genRequestId()
+                    permissionCheckPass = await this.waitForPermission(requestId, origin, authType, eventKind, message, sender)
+                    console.log('Permission result:', permissionCheckPass)
+
+                    alwaysPermission = this.pendingAlways.get(requestId)
+                    this.pendingAlways.delete(requestId)
                 } catch (error) {
-                    console.error('Permission request failed:', error);
-                    sendResponse({ id: id, error: error });
-                    return true;
+                    console.error('Permission request failed:', error)
+                    sendResponse({ id: id, error: error })
+                    return true
                 }
             }
         }
@@ -141,6 +148,14 @@ export class NostrMessageService {
             authLogManager.add(authLog)
         } catch (e) {
             console.error('Add auth log failed:', e);
+        }
+
+        try {
+            if (alwaysPermission === true && app.connectType == ConnectType.REASONABLE) {
+                appManager.checkAndAddPermission(app, permissionCheckPass, authType, eventKind)
+            }
+        } catch (e) {
+            console.error('App permission save fail:', e);
         }
 
         if (!permissionCheckPass) {
@@ -190,10 +205,8 @@ export class NostrMessageService {
     }
 
     // 异步等待权限确认
-    private waitForPermission(origin: string, authType: AuthType, eventKind: number | undefined, message: any, sender: chrome.runtime.MessageSender): Promise<boolean> {
+    private waitForPermission(requestId: string, origin: string, authType: AuthType, eventKind: number | undefined, message: any, sender: chrome.runtime.MessageSender): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const requestId = this.genRequestId()
-
             // 存储Promise解析器
             this.pendingPermissions.set(requestId, { resolve, reject })
 
@@ -261,10 +274,14 @@ export class NostrMessageService {
     }
 
     // 处理权限结果
-    private handlePermissionResult(requestId: string, allowed: boolean): void {
+    private handlePermissionResult(requestId: string, allowed: boolean, always: boolean): void {
         const pendingPermission = this.pendingPermissions.get(requestId);
         if (!pendingPermission) {
             return;
+        }
+
+        if (always === true) {
+            this.pendingAlways.set(requestId, true)
         }
 
         pendingPermission.resolve(allowed);

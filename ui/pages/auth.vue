@@ -79,6 +79,7 @@ const submit = async (allowed: boolean) => {
         requestId: requestId,
         type: OtherMessageType.PERMISSION_RESULT,
         allowed: allowed,
+        always: always.value
     }
     await chrome.runtime.sendMessage(message)
     

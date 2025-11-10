@@ -156,25 +156,48 @@ export class AppManager {
         }
     }
 
+    genPermissionKey(authType: AuthType, eventKind?: number): string {
+        let key = authType.toString();
+        if (eventKind) {
+            key += `-${eventKind}`;
+        }
+
+        return key
+    }
+
     checkPermission(code: string, authType: AuthType, eventKind?: number): AuthResult {
         const permissionMap = this.getAppPermissionMap(code);
         if (!permissionMap) {
             return AuthResult.REJECT;
         }
 
-        let key = authType.toString();
-        if (eventKind) {
-            key += `-${eventKind}`;
-        }
+        let key = this.genPermissionKey(authType, eventKind)
 
         const authResult = permissionMap.get(key) || AuthResult.ASK;
         return authResult;
     }
 
-    updatePermissionsToApp(permissionMap: Map<string, number>, app: App) {
-        const alwaysAllowItems: string[] = [];
-        const alwaysRejectItems: string[] = [];
+    async checkAndAddPermission(app: App, allow: boolean, authType: AuthType, eventKind?: number) {
+        if (!app.code) {
+            return
+        }
 
+        const permissionMap = this.getAppPermissionMap(app.code);
+        if (!permissionMap) {
+            return
+        }
+
+        let key = this.genPermissionKey(authType, eventKind)
+        const authResult = permissionMap.get(key)
+        if (!authResult || (authResult === AuthResult.OK && !allow) || (authResult === AuthResult.REJECT && allow)) {
+            // need update
+            permissionMap.set(key, allow ? AuthResult.OK : AuthResult.REJECT)
+            this.updatePermissionsToApp(permissionMap, app)
+            await this.saveApp(app)
+        }
+    }
+
+    updatePermissionsToApp(permissionMap: Map<string, number>, app: App) {
         // 按权限类型分组
         const okPermissions = new Map<string, Set<string>>();
         const rejectPermissions = new Map<string, Set<string>>();
@@ -293,9 +316,13 @@ export const appManager = {
     // 设置监听器
     setupListener: () => defaultAppManager.setupStorageListener(),
 
+    genPermissionKey: (authType: AuthType, eventKind?: number) => defaultAppManager.genPermissionKey(authType, eventKind),
+
     updatePermissionsToApp: (permissionMap: Map<string, number>, app: App) => defaultAppManager.updatePermissionsToApp(permissionMap, app),
 
     getAppPermissionMap: (code: string) => defaultAppManager.getAppPermissionMap(code),
 
     checkPermission: (code: string, authType: AuthType, eventKind?: number) => defaultAppManager.checkPermission(code, authType, eventKind),
+
+    checkAndAddPermission: (app: App, allow: boolean, authType: AuthType, eventKind?: number) => defaultAppManager.checkAndAddPermission(app, allow, authType, eventKind),
 };
