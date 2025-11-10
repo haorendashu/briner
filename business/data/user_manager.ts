@@ -3,10 +3,14 @@ import { User } from './user';
 // 存储键名
 const STORAGE_KEY = 'briner_users';
 
+// 存储变化监听器类型
+type StorageChangeListener = () => void;
+
 // 用户管理器类
 export class UserManager {
     private users: Map<string, User> = new Map(); // 使用pubkey作为键
     private initialized: boolean = false;
+    private storageChangeListeners: Set<StorageChangeListener> = new Set(); // 存储变化监听器列表
 
     constructor() {
         this.initialize();
@@ -136,6 +140,18 @@ export class UserManager {
         });
     }
 
+    // 注册存储变化监听器
+    addStorageChangeListener(listener: StorageChangeListener): void {
+        this.storageChangeListeners.add(listener);
+        console.log('Storage change listener added');
+    }
+
+    // 移除存储变化监听器
+    removeStorageChangeListener(listener: StorageChangeListener): void {
+        this.storageChangeListeners.delete(listener);
+        console.log('Storage change listener removed');
+    }
+
     // 处理存储变化
     private handleStorageChange(change: chrome.storage.StorageChange): void {
         if (change.newValue && Array.isArray(change.newValue)) {
@@ -149,6 +165,15 @@ export class UserManager {
             });
             console.log('Users updated from storage change');
         }
+
+        // 触发所有存储变化监听器
+        this.storageChangeListeners.forEach(listener => {
+            try {
+                listener();
+            } catch (error) {
+                console.error('Error in storage change listener:', error);
+            }
+        });
     }
 }
 
@@ -175,5 +200,9 @@ export const userManager = {
     clearAll: () => defaultUserManager.clearAllUsers(),
 
     // 设置监听器
-    setupListener: () => defaultUserManager.setupStorageListener()
+    setupListener: () => defaultUserManager.setupStorageListener(),
+
+    // 存储变化监听器管理
+    addStorageChangeListener: (listener: StorageChangeListener) => defaultUserManager.addStorageChangeListener(listener),
+    removeStorageChangeListener: (listener: StorageChangeListener) => defaultUserManager.removeStorageChangeListener(listener)
 };

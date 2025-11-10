@@ -8,12 +8,15 @@ import { NostrMessageService } from '../business/service/nostr_message_service';
 import { NpubSigner } from '../business/nostr_signer/npub_signer';
 import { hexToBytes } from 'nostr-tools/utils';
 import { RemoteSigner } from '../business/nostr_signer/remote_signer';
+import { appManager } from '../business/data/app_manager';
 
 console.log('Hello from the background script!')
 
 let nostrMessageService: NostrMessageService;
 
 userManager.initialize().then(() => {
+    userManager.setupListener()
+
     nostrMessageService = new NostrMessageService(true);
 
     let hasHardwareUser = false;
@@ -46,6 +49,10 @@ userManager.initialize().then(() => {
         let authUrl = chrome.runtime.getURL('/pages/hardware_signer_login.html')
         chrome.windows.create({ url: authUrl, type: 'normal' }) // the popup type windows can't getSerialPort
     }
+})
+
+appManager.initialize().then(() => {
+    appManager.setupListener()
 })
 
 chrome.runtime.onInstalled.addListener((detail) => {

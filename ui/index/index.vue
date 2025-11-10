@@ -64,20 +64,19 @@ const loadAuthLogs = async () => {
 
 // 组件挂载时加载数据
 onMounted(async () => {
-    // 设置存储变化监听器
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === 'local' && changes['briner_users']) {
-            console.log('Storage changed, reloading users...')
-            loadUsers()
-        } else if (namespace === 'local' && changes['briner_apps']) {
-            console.log('Storage changed, reloading users...')
-            loadApps()
-        }
-    })
-    
     await loadUsers()
     await loadApps()
     await loadAuthLogs()
+
+    userManager.setupListener()
+    userManager.addStorageChangeListener(() => {
+        loadUsers()
+    })
+
+    appManager.setupListener()
+    appManager.addStorageChangeListener(() => {
+        loadApps()
+    })
 })
 </script>
 
