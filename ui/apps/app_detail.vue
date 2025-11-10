@@ -21,11 +21,17 @@ const connectTypeOptions = [
 
 const allows = ref<string[]>([])
 const rejects = ref<string[]>([])
+const isAction = ref(false)
 
 onMounted(async () => {
     let appCode = route.params.id as string
     appCode = decodeURIComponent(appCode)
     console.log('App Code:', appCode)
+
+    const isActionStr = route.query.isAction as string
+    if (isActionStr == 'true') {
+        isAction.value = true
+    }
     
     await appManager.initialize()
     const loadedApp = appManager.getByCode(appCode)
@@ -117,83 +123,83 @@ const deleteApp = () => {
 
 </script>
 <template>
-    <AppBarComponent title="Edit App">
-        <template #right>
-            <img src="/imgs/delete.png" style="width: 20px; height: 20px;" class="cursor-pointer ml-2 mr-2" v-on:click="deleteApp()" />
-        </template>
-    </AppBarComponent>
-    <div class="container mb-4">
-        <div class="card mt-4">
-            <div v-if="app" class="p-4">
-                <div class="mt-2 mb-4">
-                    <label class="form-label fw-bold mr-4">App Address:</label>
-                    <span class="text-gray-500">{{ app.code }}</span>
-                </div>
-
-                <div class="mb-4 container flex">
-                    <label class="form-label fw-bold flex-none mr-4">App Name:</label>
-                    <input type="text" class="form-control border-b-1 flex-1" v-model="app.name" placeholder="Please input app name" />
-                </div>
-                
-                <div class="flex items-center mb-4 container">
-                    <span class="form-label fw-bold mr-4">Pubkey:</span>
-                    <UserSelectComponent v-model="app.pubkey" placeholder="Select User" :disabled=true />
-                </div>
-                
-                <div class="mb-4 container">
-                    <label class="form-label fw-bold mr-4">Connect Type:</label>
-                    <select 
-                        class="form-select form-select-lg border-primary" 
-                        v-model="app.connectType"
-                        required
-                    >
-                        <option v-for="option in connectTypeOptions" 
-                                :key="option.value" 
-                                :value="option.value">
-                            {{ option.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <template v-if="app.connectType == ConnectType.REASONABLE">
-                    <div v-if="allows?.length && allows?.length > 0" class="mb-4 container">
-                        <div class="fw-bold mb-3">
-                            Always Allow:
-                        </div>
-                        <div class="">
-                            <span v-for="permission in allows" v-on:click="removeItem(true, permission)" class="permissionItem">
-                                {{ getPermissionName(permission) }}
-                                <span class="ml-1 text-red-500">X</span>
-                            </span>
-                        </div>
+    <template v-if="app" >
+        <AppBarComponent title="Connection Infomation" :showBack="isAction ? 'false' : 'true'">
+            <template #right>
+                <img src="/imgs/delete.png" style="width: 20px; height: 20px;" class="cursor-pointer ml-2 mr-2" v-on:click="deleteApp()" />
+            </template>
+        </AppBarComponent>
+        <div class="container mb-4">
+            <div class="card mt-4">
+                <div :class="isAction ? 'p-2' : 'p-4'">
+                    <div class="mt-2 mb-4">
+                        <label class="form-label fw-bold mr-4">App Address:</label>
+                        <span class="text-gray-500">{{ app.code }}</span>
                     </div>
-                    <div v-if="rejects?.length && rejects?.length > 0" class="mb-4 container">
-                        <div class="fw-bold mb-3">
-                            Always Reject:
-                        </div>
-                        <div class="">
-                            <span v-for="permission in rejects" v-on:click="removeItem(false, permission)" class="permissionItem">
-                                {{ getPermissionName(permission) }}
-                                <span class="ml-1 text-red-500">X</span>
-                            </span>
-                        </div>
-                    </div>
-                </template>
 
-                <div class="flex justify-end mt-12">
-                    <button class="bg-red-500 text-white px-4 py-2 rounded-2xl mr-2" v-on:click="submit(false)">Cancel</button>
-                    <button class="bg-green-500 text-white px-4 py-2 rounded-2xl" v-on:click="submit(true)">Confirm</button>
+                    <div class="mb-4 container flex">
+                        <label class="form-label fw-bold flex-none mr-4">App Name:</label>
+                        <input type="text" class="form-control border-b-1 flex-1" v-model="app.name" placeholder="Please input app name" />
+                    </div>
+                    
+                    <div class="flex items-center mb-4 container">
+                        <span class="form-label fw-bold mr-4">Pubkey:</span>
+                        <UserSelectComponent v-model="app.pubkey" placeholder="Select User" :disabled=true />
+                    </div>
+                    
+                    <div class="mb-4 container">
+                        <label class="form-label fw-bold mr-4">Connect Type:</label>
+                        <select 
+                            class="form-select form-select-lg border-primary" 
+                            v-model="app.connectType"
+                            required
+                        >
+                            <option v-for="option in connectTypeOptions" 
+                                    :key="option.value" 
+                                    :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <template v-if="app.connectType == ConnectType.REASONABLE">
+                        <div v-if="allows?.length && allows?.length > 0" class="mb-4 container">
+                            <div class="fw-bold mb-3">
+                                Always Allow:
+                            </div>
+                            <div class="">
+                                <span v-for="permission in allows" v-on:click="removeItem(true, permission)" class="permissionItem">
+                                    {{ getPermissionName(permission) }}
+                                    <span class="ml-1 text-red-500">X</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div v-if="rejects?.length && rejects?.length > 0" class="mb-4 container">
+                            <div class="fw-bold mb-3">
+                                Always Reject:
+                            </div>
+                            <div class="">
+                                <span v-for="permission in rejects" v-on:click="removeItem(false, permission)" class="permissionItem">
+                                    {{ getPermissionName(permission) }}
+                                    <span class="ml-1 text-red-500">X</span>
+                                </span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="flex justify-end mt-12">
+                        <button class="bg-red-500 text-white px-4 py-2 rounded-2xl mr-2" v-on:click="submit(false)">Cancel</button>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-2xl" v-on:click="submit(true)">Confirm</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div v-else class="text-center py-5">
-                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted fs-5">It's loaing the app info...</p>
             </div>
         </div>
-    </div>
+    </template>
+    <template v-else>
+        <div class="h-full content-center text-center">
+            This website is not yet connected!
+        </div>
+    </template>
 </template>
 
 <style scoped>
