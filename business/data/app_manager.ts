@@ -94,14 +94,15 @@ export class AppManager {
         try {
             const deleted = this.apps.delete(code);
             if (deleted) {
-                await this.saveToStorage();
-                console.log('App deleted successfully:', code);
-                return true;
+                await this.saveToStorage()
+                console.log('App deleted successfully:', code)
+                this.permissionMaps.delete(code)
+                return true
             }
-            return false;
+            return false
         } catch (error) {
-            console.error('Failed to delete app:', error);
-            return false;
+            console.error('Failed to delete app:', error)
+            return false
         }
     }
 
@@ -157,8 +158,9 @@ export class AppManager {
 
     // 处理存储变化
     private handleStorageChange(change: chrome.storage.StorageChange): void {
+        this.apps.clear()
+        this.permissionMaps.clear()
         if (change.newValue && Array.isArray(change.newValue)) {
-            this.apps.clear();
             change.newValue.forEach((appData: any) => {
                 const app = new App();
                 Object.assign(app, appData);
@@ -167,8 +169,8 @@ export class AppManager {
                     this.handleAppPermissionMap(app);
                 }
             });
-            console.log('Apps updated from storage change');
         }
+        console.log('Apps updated from storage change');
 
         // 触发所有存储变化监听器
         this.storageChangeListeners.forEach(listener => {
