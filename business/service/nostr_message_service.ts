@@ -263,6 +263,7 @@ export class NostrMessageService {
 
                 let saveResult = await appManager.save(app)
                 if (saveResult) {
+                    // handle permission right now avoid first time auth fail
                     appManager.handleAppPermissionMap(app)
                     pendingConnection.resolve(app);
                     return;
