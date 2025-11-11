@@ -269,7 +269,7 @@ export class AppManager {
         return this.permissionMaps.get(code);
     }
 
-    private handleAppPermissionMap(app: App) {
+    handleAppPermissionMap(app: App) {
         if (app.code) {
             this.permissionMaps.set(app.code, this.genPermissionMap(app));
         }
@@ -345,6 +345,8 @@ export const appManager = {
     removeStorageChangeListener: (listener: StorageChangeListener) => defaultAppManager.removeStorageChangeListener(listener),
 
     genPermissionKey: (authType: AuthType, eventKind?: number) => defaultAppManager.genPermissionKey(authType, eventKind),
+
+    handleAppPermissionMap: (app: App) => defaultAppManager.handleAppPermissionMap(app),
 
     updatePermissionsToApp: (permissionMap: Map<string, number>, app: App) => defaultAppManager.updatePermissionsToApp(permissionMap, app),
 
