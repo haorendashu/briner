@@ -4,10 +4,11 @@ import { useRoute } from 'vue-router';
 import AppBarComponent from '../components/app_bar_component.vue'
 import UserSelectComponent from '../components/user_select_component.vue'
 import type { App } from '../../business/data/app';
-import { appManager } from '../../business/data/app_manager';
-import { ConnectType, DEFAULT_PERMISSION } from '../../business/consts/connect_type';
-import { AuthResult } from '../../business/consts/auth_result';
-import router from '../router_builder';
+import { appManager } from '../../business/data/app_manager'
+import { ConnectType, DEFAULT_PERMISSION } from '../../business/consts/connect_type'
+import { AuthResult } from '../../business/consts/auth_result'
+import router from '../router_builder'
+import { authLogManager } from '../../business/data/auth_log_manager'
 
 const app = ref<App>()
 const route = useRoute()
@@ -112,19 +113,32 @@ const submit = (confirm: boolean)  => {
     router.back()
 }
 
-const deleteApp = () => {
+const deleteApp = async () => {
     if (!app || !app.value || !app.value.code) {
         return
     }
 
-    appManager.delete(app.value?.code!)
-    router.back()
+    if (confirm(`Are you sure you want to delete app ${app.value.code}?`)) {
+        try {
+            const success = await appManager.delete(app.value.code)
+            if (success) {
+                authLogManager.deleteByAppCode(app.value.code)
+                router.back()
+            } else {
+                alert('Failed to delete app')
+            }
+        } catch (error) {
+            console.error('Failed to delete app:', error)
+            alert('Failed to delete app')
+        }
+    }
+
 }
 
 </script>
 <template>
     <template v-if="app" >
-        <AppBarComponent title="Connection Infomation" :showBack="isAction ? 'false' : 'true'">
+        <AppBarComponent title="App Infomation" :showBack="isAction ? 'false' : 'true'">
             <template #right>
                 <img src="/imgs/delete.png" style="width: 20px; height: 20px;" class="cursor-pointer ml-2 mr-2" v-on:click="deleteApp()" />
             </template>

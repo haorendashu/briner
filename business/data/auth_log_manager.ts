@@ -140,7 +140,7 @@ export class AuthLogManager {
     }
 
     // 根据应用代码获取认证日志（带分页）
-    async getAuthLogsByAppCode(appCode: number, page: number = 1, pageSize: number = 20): Promise<AuthLog[]> {
+    async getAuthLogsByAppCode(appCode: string, page: number = 1, pageSize: number = 20): Promise<AuthLog[]> {
         if (!this.initialized) {
             await this.initialize();
         }
@@ -190,7 +190,7 @@ export class AuthLogManager {
     }
 
     // 根据应用代码获取认证日志数量
-    async getAuthLogsCountByAppCode(appCode: number): Promise<number> {
+    async getAuthLogsCountByAppCode(appCode: string): Promise<number> {
         if (!this.initialized) {
             await this.initialize();
         }
@@ -296,7 +296,7 @@ export class AuthLogManager {
     }
 
     // 根据应用代码删除认证日志
-    async deleteAuthLogsByAppCode(appCode: number): Promise<boolean> {
+    async deleteAuthLogsByAppCode(appCode: string): Promise<boolean> {
         if (!this.initialized) {
             await this.initialize();
         }
@@ -403,17 +403,17 @@ export const authLogManager = {
     // 查询日志
     getById: (id: number) => defaultAuthLogManager.getAuthLogById(id),
     getAll: () => defaultAuthLogManager.getAllAuthLogs(),
-    getByAppCode: (appCode: number, page?: number, pageSize?: number) => defaultAuthLogManager.getAuthLogsByAppCode(appCode, page, pageSize),
+    getByAppCode: (appCode: string, page?: number, pageSize?: number) => defaultAuthLogManager.getAuthLogsByAppCode(appCode, page, pageSize),
     getRecent: (page: number = 1, pageSize: number = 20) => defaultAuthLogManager.getRecentAuthLogs(page, pageSize),
 
     // 删除日志
     delete: (id: number) => defaultAuthLogManager.deleteAuthLog(id),
-    deleteByAppCode: (appCode: number) => defaultAuthLogManager.deleteAuthLogsByAppCode(appCode),
+    deleteByAppCode: (appCode: string) => defaultAuthLogManager.deleteAuthLogsByAppCode(appCode),
     clearAll: () => defaultAuthLogManager.clearAllAuthLogs(),
 
     // 工具函数
     getCount: () => defaultAuthLogManager.getAuthLogCount(),
-    getCountByAppCode: (appCode: number) => defaultAuthLogManager.getAuthLogsCountByAppCode(appCode),
+    getCountByAppCode: (appCode: string) => defaultAuthLogManager.getAuthLogsCountByAppCode(appCode),
 
     // 关闭连接
     close: () => defaultAuthLogManager.close(),
