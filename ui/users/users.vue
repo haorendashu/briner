@@ -25,17 +25,17 @@ const loadUsers = async () => {
 
 // 删除用户
 const deleteUser = async (pubkey: string) => {
-  if (confirm(`确定要删除用户 ${pubkey} 吗？`)) {
+  if (confirm(`Are you sure you want to delete user ${pubkey}?`)) {
     try {
       const success = await userManager.delete(pubkey)
       if (success) {
         await loadUsers()
       } else {
-        alert('删除用户失败')
+        alert('Failed to delete user')
       }
     } catch (error) {
       console.error('Failed to delete user:', error)
-      alert('删除用户失败')
+      alert('Failed to delete user')
     }
   }
 }
@@ -48,17 +48,17 @@ const getUserTypeName = (keyType: number): string => {
     case KeyType.NSEC:
       return 'NSEC'
     case KeyType.REMOTE:
-      return '远程'
+      return 'Remote'
     case KeyType.HARDWARE:
-      return '硬件'
+      return 'Hardware'
     default:
-      return '未知'
+      return 'Unknown'
   }
 }
 
 // 格式化时间戳
 const formatTimestamp = (timestamp?: number): string => {
-  if (!timestamp) return '未知'
+  if (!timestamp) return 'Unknown'
   return new Date(timestamp).toLocaleString()
 }
 
@@ -86,10 +86,10 @@ onMounted(async () => {
         <!-- 用户列表 -->
         <div class="card">
             <div v-if="isLoading" class="text-center py-4">
-                加载中...
+                Loading users...
             </div>
             <div v-else-if="users.length === 0" class="text-center py-4 text-gray-500">
-                暂无用户数据
+                No user data available
             </div>
             <div v-else class="space-y-3">
                 <div 
@@ -100,15 +100,15 @@ onMounted(async () => {
                     <div class="flex-1">
                         <div class="font-medium">{{ user.pubkey }}</div>
                         <div class="text-sm text-gray-600">
-                            类型: {{ getUserTypeName(user.keyType) }} | 
-                            创建时间: {{ formatTimestamp(user.createdAt) }}
+                            Type: {{ getUserTypeName(user.keyType) }} | 
+                            Created At: {{ formatTimestamp(user.createdAt) }}
                         </div>
                     </div>
                     <button 
                         @click="deleteUser(user.pubkey)" 
                         class="ml-4 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
                     >
-                        删除
+                        Delete
                     </button>
                 </div>
             </div>
