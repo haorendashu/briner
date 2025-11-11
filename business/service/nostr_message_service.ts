@@ -13,7 +13,7 @@ export class NostrMessageService {
     private handleConnectMessage: boolean = true
 
     // key - value : pubkey, ISigner
-    private signers: Map<String, ISigner> = new Map()
+    private signers: Map<string, ISigner> = new Map()
     // 存储等待连接完成的Promise解析器
     private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map()
     // 存储等待权限确认的Promise解析器
@@ -27,6 +27,21 @@ export class NostrMessageService {
 
     addSigner(pubkey: string, signer: ISigner) {
         this.signers.set(pubkey, signer)
+    }
+
+    // 添加移除signer的方法
+    removeSigner(pubkey: string): boolean {
+        return this.signers.delete(pubkey)
+    }
+
+    // 添加移除所有signer的方法
+    removeAllSigners(): void {
+        this.signers.clear()
+    }
+
+    // 添加获取所有signer的pubkey的方法
+    getAllSignerPubkeys(): string[] {
+        return Array.from(this.signers.keys())
     }
 
     shouldBeHandled(message: any): boolean {
