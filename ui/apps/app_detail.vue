@@ -120,9 +120,10 @@ const deleteApp = async () => {
 
     if (confirm(`Are you sure you want to delete app ${app.value.code}?`)) {
         try {
-            const success = await appManager.delete(app.value.code)
+            let appCode = app.value.code
+            const success = await appManager.delete(appCode)
             if (success) {
-                authLogManager.deleteByAppCode(app.value.code)
+                await authLogManager.deleteByAppCode(appCode)
                 router.back()
             } else {
                 alert('Failed to delete app')

@@ -8,42 +8,52 @@ const STORE_NAME = 'auth_logs';
 // 认证日志管理器类
 export class AuthLogManager {
     private db: IDBDatabase | null = null;
-    private initialized: boolean = false;
+    private initializationPromise: Promise<void> | null = null;
+    private isInitialized: boolean = false;
 
     constructor() {
-        this.initialize();
+        this.initializationPromise = this.initialize();
+    }
+
+    // 确保数据库已初始化
+    private async ensureInitialized(): Promise<void> {
+        if (this.isInitialized) return;
+        if (!this.initializationPromise) {
+            this.initializationPromise = this.initialize();
+        }
+        return this.initializationPromise;
     }
 
     // 初始化 IndexedDB 数据库
     async initialize(): Promise<void> {
-        if (this.initialized) return;
+        if (this.isInitialized) return;
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
 
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
             request.onerror = () => {
                 console.error('Failed to open IndexedDB:', request.error);
+                this.initializationPromise = null;
                 reject(request.error);
             };
 
             request.onsuccess = () => {
                 this.db = request.result;
-                this.initialized = true;
+                this.isInitialized = true;
                 console.log('AuthLogManager initialized successfully');
                 resolve();
             };
 
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
-
-                // 创建对象存储
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
                     const store = db.createObjectStore(STORE_NAME, {
                         keyPath: 'id',
                         autoIncrement: true
                     });
-
-                    // 创建索引
                     store.createIndex('appCode', ['appCode', 'createdAt'], { unique: false });
                     store.createIndex('createdAt', 'createdAt', { unique: false });
                 }
@@ -53,9 +63,7 @@ export class AuthLogManager {
 
     // 添加认证日志
     async addAuthLog(log: AuthLog): Promise<number> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -66,20 +74,20 @@ export class AuthLogManager {
             const transaction = this.db.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
 
-            // 设置创建时间
-            log.createdAt = Date.now();
+            // 修复类型安全问题
+            const logToAdd = { ...log };
+            logToAdd.createdAt = Date.now();
 
-            // 创建不包含 id 字段的对象副本，让数据库自动生成
-            const { id, ...logWithoutId } = log;
-            const request = store.add(logWithoutId);
+            // 确保不包含 id
+            delete logToAdd.id;
+
+            const request = store.add(logToAdd);
 
             request.onsuccess = () => {
-                console.log('AuthLog added successfully with ID:', request.result);
                 resolve(request.result as number);
             };
 
             request.onerror = () => {
-                console.error('Failed to add AuthLog:', request.error);
                 reject(request.error);
             };
         });
@@ -87,9 +95,7 @@ export class AuthLogManager {
 
     // 根据 ID 获取认证日志
     async getAuthLogById(id: number): Promise<AuthLog | null> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -114,9 +120,7 @@ export class AuthLogManager {
 
     // 获取所有认证日志
     async getAllAuthLogs(): Promise<AuthLog[]> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -141,9 +145,7 @@ export class AuthLogManager {
 
     // 根据应用代码获取认证日志（带分页）
     async getAuthLogsByAppCode(appCode: string, page: number = 1, pageSize: number = 20): Promise<AuthLog[]> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -154,36 +156,43 @@ export class AuthLogManager {
             const transaction = this.db.transaction([STORE_NAME], 'readonly');
             const store = transaction.objectStore(STORE_NAME);
             const index = store.index('appCode');
-            const request = index.openCursor(IDBKeyRange.only(appCode), 'prev'); // 按时间倒序
+
+            const keyRange = IDBKeyRange.bound([appCode, 0], [appCode, Number.MAX_SAFE_INTEGER]);
+            const request = index.openCursor(keyRange, 'prev');
 
             const results: AuthLog[] = [];
             const startIndex = (page - 1) * pageSize;
             let currentIndex = 0;
+            let hasMoreData = true;
 
             request.onsuccess = () => {
                 const cursor = request.result;
-                if (cursor) {
-                    // 跳过前面的记录
-                    if (currentIndex < startIndex) {
-                        currentIndex++;
-                        cursor.advance(startIndex - currentIndex + 1);
-                        return;
-                    }
 
-                    // 收集当前页的记录
-                    if (results.length < pageSize) {
-                        results.push(cursor.value);
-                        cursor.continue();
-                    } else {
-                        resolve(results);
-                    }
+                if (!cursor) {
+                    // 没有更多数据，返回当前结果
+                    resolve(results);
+                    return;
+                }
+
+                // 跳过前面的记录
+                if (currentIndex < startIndex) {
+                    currentIndex++;
+                    cursor.continue();
+                    return;
+                }
+
+                // 收集当前页的记录
+                if (results.length < pageSize) {
+                    results.push(cursor.value);
+                    cursor.continue();
                 } else {
+                    // 已收集足够数据
                     resolve(results);
                 }
             };
 
             request.onerror = () => {
-                console.error('Failed to get AuthLogs by appCode with pagination:', request.error);
+                console.error('Failed to get AuthLogs by appCode:', request.error);
                 reject(request.error);
             };
         });
@@ -191,9 +200,7 @@ export class AuthLogManager {
 
     // 根据应用代码获取认证日志数量
     async getAuthLogsCountByAppCode(appCode: string): Promise<number> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -219,9 +226,7 @@ export class AuthLogManager {
 
     // 获取最近 N 条认证日志（带分页）
     async getRecentAuthLogs(page: number = 1, pageSize: number = 20): Promise<AuthLog[]> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -269,9 +274,7 @@ export class AuthLogManager {
 
     // 删除认证日志
     async deleteAuthLog(id: number): Promise<boolean> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -297,9 +300,7 @@ export class AuthLogManager {
 
     // 根据应用代码删除认证日志
     async deleteAuthLogsByAppCode(appCode: string): Promise<boolean> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise(async (resolve, reject) => {
             if (!this.db) {
@@ -308,7 +309,7 @@ export class AuthLogManager {
             }
 
             try {
-                const logs = await this.getAuthLogsByAppCode(appCode);
+                const logs = await this.getAuthLogsByAppCode(appCode, 1, 100000);
                 const deletePromises = logs.map(log =>
                     log.id ? this.deleteAuthLog(log.id) : Promise.resolve(false)
                 );
@@ -325,9 +326,7 @@ export class AuthLogManager {
 
     // 清空所有认证日志
     async clearAllAuthLogs(): Promise<boolean> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -353,9 +352,7 @@ export class AuthLogManager {
 
     // 获取认证日志数量
     async getAuthLogCount(): Promise<number> {
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this.ensureInitialized();
 
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -383,7 +380,8 @@ export class AuthLogManager {
         if (this.db) {
             this.db.close();
             this.db = null;
-            this.initialized = false;
+            this.isInitialized = false;
+            this.initializationPromise = null;
             console.log('AuthLogManager database closed');
         }
     }
