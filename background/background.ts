@@ -60,8 +60,11 @@ function addSigner(user: User): boolean {
         nostrMessageService!.addSigner(user.pubkey, remoteSigner)
     } else if (user.keyType == KeyType.HARDWARE) {
         hasHardwareUser = true;
+        nostrMessageService.addHardwareSignerPubkey(user.pubkey)
+        return hasHardwareUser
     }
 
+    nostrMessageService.removeHarewareSignerPubkey(user.pubkey)
     return hasHardwareUser
 }
 

@@ -14,6 +14,7 @@ export class NostrMessageService {
 
     // key - value : pubkey, ISigner
     private signers: Map<string, ISigner> = new Map()
+    private hardwareSignerPubkeys: Map<string, number> = new Map()
     // 存储等待连接完成的Promise解析器
     private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map()
     // 存储等待权限确认的Promise解析器
@@ -23,6 +24,14 @@ export class NostrMessageService {
 
     constructor(handleConnectMessage: boolean) {
         this.handleConnectMessage = handleConnectMessage;
+    }
+
+    addHardwareSignerPubkey(pubkey: string) {
+        this.hardwareSignerPubkeys.set(pubkey, 1)
+    }
+
+    removeHarewareSignerPubkey(pubkey: string) {
+        this.hardwareSignerPubkeys.delete(pubkey)
     }
 
     addSigner(pubkey: string, signer: ISigner) {
@@ -105,7 +114,9 @@ export class NostrMessageService {
 
         let signer = this.signers.get(app.pubkey);
         if (!signer) {
-            sendResponse({ id: id, error: 'No signer available for this app' });
+            if (!this.hardwareSignerPubkeys.get(app.pubkey)) {
+                sendResponse({ id: id, error: 'No signer available for this app' });
+            }
             return false;
         }
 
