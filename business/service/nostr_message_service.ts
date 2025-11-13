@@ -92,7 +92,12 @@ export class NostrMessageService {
 
         // 1. 检查app是否存在，如果不存在则等待连接
         let app = appManager.getByCode(origin);
-        if (this.handleConnectMessage && (!app || !app.pubkey || !app.code)) {
+        if (!app || !app.pubkey || !app.code) {
+            if (!this.handleConnectMessage) {
+                // app not found or app not valid, but doesn't handle app connect, just return
+                return false
+            }
+
             try {
                 // 异步等待app连接完成
                 app = await this.waitForAppConnection(origin, message, sender);
@@ -104,12 +109,12 @@ export class NostrMessageService {
             } catch (error) {
                 console.error('App connection failed:', error);
                 sendResponse({ id: id, error: error });
-                return true;
+                return false;
             }
         }
         if (!app || !app.pubkey || !app.code) {
             sendResponse({ id: id, error: 'App connection failed: app is undefined' });
-            return true;
+            return false;
         }
 
         let signer = this.signers.get(app.pubkey);

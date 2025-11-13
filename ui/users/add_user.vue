@@ -130,8 +130,12 @@ const addHardwareUser = async () => {
                 let user = new User(pubkey, KeyType.HARDWARE);
                 userManager.save(user)
             }
-            nesigner.close()
-
+            try {
+                await nesigner.close()
+            } catch (e) {
+                // the method seem may throw error, but we just log it and continue and wait for fix.
+                console.log("close nesigner failed:", e)
+            }
             router.back()
         }
     }

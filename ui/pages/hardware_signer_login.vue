@@ -4,6 +4,7 @@ import AppBarComponent from '../components/app_bar_component.vue'
 import { createNesigner, getSerialPort } from 'js_nesigner_sdk'
 import { NostrMessageService } from '../../business/service/nostr_message_service'
 import { NesignerSigner } from '../../business/nostr_signer/nesigner_signer'
+import { appManager } from '../../business/data/app_manager'
 
 const nesignerPinCode = ref("")
 const showInput = ref(false)
@@ -49,6 +50,8 @@ const initChromeMessageListener = async () => {
     
     initedListenMessage.value = true
 }
+
+appManager.setupListener()
 
 </script>
 <template>
