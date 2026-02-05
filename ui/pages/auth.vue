@@ -73,7 +73,7 @@ const handleUserChange = (pubkey: string) => {
 }
 
 const submit = async (allowed: boolean) => {
-    console.log('confirm:', confirm)
+    console.log('confirm:', allowed)
     let message = {
         origin: origin,
         requestId: requestId,
