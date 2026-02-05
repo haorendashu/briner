@@ -21,14 +21,14 @@ window.addEventListener('message', message => {
     ) {
         console.log('Content script received request from page:', message.data);
 
-        // 转发消息给 background script
-        chrome.runtime.sendMessage(message.data, response => {
+        // 转发消息给 background script (include origin)
+        chrome.runtime.sendMessage({ ...message.data, origin: window.location.origin }, response => {
             console.log('Content script received response from background:', response);
             window.postMessage({
                 ext: 'briner',
                 id: message.data.id,
-                response: response.response,
-                error: response.error
+                response: response && response.response,
+                error: response && response.error
             }, '*');
         });
 

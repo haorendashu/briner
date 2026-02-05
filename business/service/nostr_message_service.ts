@@ -143,12 +143,25 @@ export class NostrMessageService {
             return true;
         }
 
-        let origin = sender.origin
-        let url = sender.url
+        // Determine origin: prefer sender.origin, then message.origin, then try to parse from sender.url or sender.tab.url
+        let origin: string | undefined = (sender && (sender as any).origin) || (message && message.origin);
+        const url = (sender && (sender as any).url) as string | undefined;
 
         let id = message.id
         let authType = message.type
         let params = message.params
+
+        if (!origin) {
+            try {
+                if (url) {
+                    origin = new URL(url).origin
+                } else if (sender && sender.tab && (sender.tab as any).url) {
+                    origin = new URL((sender.tab as any).url).origin
+                }
+            } catch (e) {
+                console.error('Failed to parse origin from URL:', e)
+            }
+        }
 
         if (!origin) {
             sendResponse({ id: id, error: 'Origin is required' });
