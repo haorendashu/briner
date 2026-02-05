@@ -4,7 +4,7 @@ console.log('Hello from the content script!');
 const script = document.createElement('script');
 script.setAttribute('async', 'false');
 script.setAttribute('type', 'text/javascript');
-let nostrScriptUrl = chrome.runtime.getURL('/scripts/nostr_script.js');
+let nostrScriptUrl = chrome.runtime.getURL('scripts/nostr_script.js');
 console.log(nostrScriptUrl);
 script.setAttribute('src', nostrScriptUrl);
 document.head.appendChild(script);
