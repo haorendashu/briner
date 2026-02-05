@@ -10,6 +10,7 @@ const nesignerPinCode = ref("")
 const showInput = ref(false)
 const nostrMessageService = new NostrMessageService(false);
 const initedListenMessage = ref(false)
+let portRef: chrome.runtime.Port | null = null
 
 const hardwareUserLogin = async () => {
     if (!nesignerPinCode.value) {
@@ -24,32 +25,43 @@ const hardwareUserLogin = async () => {
             let pubkey = await nesigner.getPublicKey()
             if (pubkey) {
                 // connect success!
-                await initChromeMessageListener()
+                // register a long lived port and let background forward requests to this page
+                await appManager.initialize()
+
+                portRef = chrome.runtime.connect()
+                portRef.postMessage({ type: 'REGISTER', pubkey })
+
+                portRef.onMessage.addListener(async (msg: any) => {
+                    console.log('hardware port receive message:', msg)
+                    if (msg && msg.type === 'HARDWARE_REQUEST' && msg.requestId && msg.message) {
+                        try {
+                            await appManager.initialize()
+                            // handle the message using local nostrMessageService
+                            await nostrMessageService.handle(msg.message, {} as chrome.runtime.MessageSender, (response: any) => {
+                                portRef?.postMessage({ type: 'HARDWARE_RESPONSE', requestId: msg.requestId, response: response.response, error: response.error })
+                            })
+                        } catch (e) {
+                            console.error('Error handling hardware request:', e)
+                            portRef?.postMessage({ type: 'HARDWARE_RESPONSE', requestId: msg.requestId, error: String(e) })
+                        }
+                    }
+                })
+
                 nostrMessageService.addSigner(pubkey, new NesignerSigner(nesigner))
+                initedListenMessage.value = true
             }
         }
     }
 }
 
-const initChromeMessageListener = async () => {
-    if (initedListenMessage.value) {
-        return
+// disconnect the port when this component unmounts
+import { onBeforeUnmount } from 'vue'
+onBeforeUnmount(() => {
+    if (portRef) {
+        try { portRef.disconnect() } catch(e) { }
+        portRef = null
     }
-    
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log("hardware signer page receive message:", message)
-        console.log("hardware signer page sender:", sender)
-
-        if (nostrMessageService.shouldBeHandled(message)) {
-            nostrMessageService.handle(message, sender, sendResponse)
-            return true;
-        }
-
-        return false;
-    });
-    
-    initedListenMessage.value = true
-}
+})
 
 appManager.setupListener()
 

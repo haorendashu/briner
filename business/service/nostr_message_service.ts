@@ -15,6 +15,13 @@ export class NostrMessageService {
     // key - value : pubkey, ISigner
     private signers: Map<string, ISigner> = new Map()
     private hardwareSignerPubkeys: Map<string, number> = new Map()
+
+    // hardware long-lived ports: pubkey -> Port
+    private hardwarePorts: Map<string, chrome.runtime.Port> = new Map()
+
+    // pending hardware requests: requestId -> { sendResponse, timer }
+    private pendingHardwareRequests: Map<string, { sendResponse: (msg: any) => void, timer?: number }> = new Map()
+
     // 存储等待连接完成的Promise解析器
     private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map()
     // 存储等待权限确认的Promise解析器
@@ -51,6 +58,64 @@ export class NostrMessageService {
     // 添加获取所有signer的pubkey的方法
     getAllSignerPubkeys(): string[] {
         return Array.from(this.signers.keys())
+    }
+
+    // Register a hardware port for a pubkey
+    addHardwarePort(pubkey: string, port: chrome.runtime.Port) {
+        this.hardwarePorts.set(pubkey, port)
+
+        port.onMessage.addListener((msg: any) => {
+            if (!msg) return
+            if (msg.type === 'HARDWARE_RESPONSE' && msg.requestId) {
+                const pending = this.pendingHardwareRequests.get(msg.requestId)
+                if (pending) {
+                    if (pending.timer) clearTimeout(pending.timer)
+                    pending.sendResponse(msg)
+                    this.pendingHardwareRequests.delete(msg.requestId)
+                }
+            }
+        })
+
+        port.onDisconnect.addListener(() => {
+            this.removeHardwarePort(pubkey)
+            console.log('Hardware port disconnected for', pubkey)
+        })
+    }
+
+    removeHardwarePort(pubkey: string) {
+        this.hardwarePorts.delete(pubkey)
+    }
+
+    // Forward request to hardware page for the given pubkey
+    private forwardToHardware(pubkey: string, message: any, sendResponse: (resp?: any) => void, timeout: number = 30000): void {
+        const port = this.hardwarePorts.get(pubkey)
+        if (!port) {
+            sendResponse({ id: message.id, error: 'Hardware signer not connected' })
+            return
+        }
+
+        const requestId = message.id || this.genRequestId()
+
+        const timer = setTimeout(() => {
+            const pending = this.pendingHardwareRequests.get(requestId)
+            if (pending) {
+                pending.sendResponse({ requestId, error: 'Hardware response timeout' })
+                this.pendingHardwareRequests.delete(requestId)
+            }
+        }, timeout)
+
+        this.pendingHardwareRequests.set(requestId, {
+            sendResponse: (msg: any) => {
+                if (msg.error) {
+                    sendResponse({ id: message.id, error: msg.error })
+                } else {
+                    sendResponse({ id: message.id, response: msg.response })
+                }
+            },
+            timer
+        })
+
+        port.postMessage({ type: 'HARDWARE_REQUEST', requestId, message })
     }
 
     shouldBeHandled(message: any): boolean {
@@ -119,10 +184,20 @@ export class NostrMessageService {
 
         let signer = this.signers.get(app.pubkey);
         if (!signer) {
-            if (!this.hardwareSignerPubkeys.get(app.pubkey)) {
-                sendResponse({ id: id, error: 'No signer available for this app' });
+            // If a hardware port is registered for this pubkey, forward the request
+            if (this.hardwarePorts.has(app.pubkey)) {
+                this.forwardToHardware(app.pubkey, message, sendResponse)
+                return true; // async response will be sent by hardware page
             }
-            return false;
+
+            // Hardware signer exists but not connected yet
+            if (this.hardwareSignerPubkeys.get(app.pubkey)) {
+                sendResponse({ id: id, error: 'Hardware signer not connected' });
+                return true;
+            }
+
+            sendResponse({ id: id, error: 'No signer available for this app' });
+            return true;
         }
 
         // 2. 检查权限

@@ -11,7 +11,7 @@
     "url": "https://yourwebsite.com"
   },
   "dependencies": {
-    "js_nesigner_sdk": "^0.1.4",
+    "js_nesigner_sdk": "^0.1.7",
     "nostr-tools": "^2.17.0",
     "vue": "^3.4.27",
     "vue-router": "^4.5.1"

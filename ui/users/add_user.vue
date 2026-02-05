@@ -121,21 +121,44 @@ const addHardwareUser = async () => {
         return
     }
 
-    let port = await getSerialPort();
-    if (port) {
-        let nesigner = await createNesigner(port, nesignerPinCode.value)
-        if (nesigner) {
-            let pubkey = await nesigner.getPublicKey()
-            if (pubkey) {
-                let user = new User(pubkey, KeyType.HARDWARE);
-                userManager.save(user)
-            }
-            try {
-                await nesigner.close()
-            } catch (e) {
-                // the method seem may throw error, but we just log it and continue and wait for fix.
-                console.log("close nesigner failed:", e)
-            }
+    let port: any = null
+    let nesigner: any = null
+    let saved = false
+
+    try {
+        port = await getSerialPort();
+        if (!port) {
+            alert('No serial port available')
+            return
+        }
+
+        nesigner = await createNesigner(port, nesignerPinCode.value)
+        if (!nesigner) {
+            alert('Create nesigner failed')
+            return
+        }
+
+        let pubkey = await nesigner.getPublicKey()
+        if (pubkey) {
+            let user = new User(pubkey, KeyType.HARDWARE);
+            await userManager.save(user)
+            saved = true
+        } else {
+            alert('Get public key failed')
+        }
+
+    } catch (e) {
+        console.error('addHardwareUser error:', e)
+        alert('Hardware connection failed: ' + String(e))
+    } finally {
+        try { 
+            await nesigner.close(); 
+        } catch (e) { 
+            console.log('close nesigner failed:', e);
+        }
+
+        // Navigate back only if user was saved
+        if (saved) {
             router.back()
         }
     }

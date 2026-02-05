@@ -28,7 +28,10 @@ async function handleSigner() {
     let hasHardwareUser = false;
     for (let currentUser of currentUsers) {
         if (!currentSignerPubkeys.includes(currentUser.pubkey)) {
-            hasHardwareUser = addSigner(currentUser);
+            if (currentUser.keyType == KeyType.HARDWARE) {
+                hasHardwareUser = true;
+            }
+            addSigner(currentUser);
         }
     }
 
@@ -39,8 +42,7 @@ async function handleSigner() {
     }
 }
 
-function addSigner(user: User): boolean {
-    let hasHardwareUser = false;
+function addSigner(user: User) {
     if (user.keyType == KeyType.NSEC && user.keyText) {
         if (user.keyText.startsWith('nsec')) {
             // nsec private key
@@ -59,13 +61,12 @@ function addSigner(user: User): boolean {
         remoteSigner.login()
         nostrMessageService!.addSigner(user.pubkey, remoteSigner)
     } else if (user.keyType == KeyType.HARDWARE) {
-        hasHardwareUser = true;
         nostrMessageService.addHardwareSignerPubkey(user.pubkey)
-        return hasHardwareUser
+        return
     }
 
     nostrMessageService.removeHarewareSignerPubkey(user.pubkey)
-    return hasHardwareUser
+    return
 }
 
 userManager.initialize().then(() => {
@@ -84,6 +85,22 @@ appManager.initialize().then(() => {
 
 chrome.runtime.onInstalled.addListener((detail) => {
     if (detail.reason === 'install') chrome.runtime.openOptionsPage()
+})
+
+// Listen for hardware page ports registering themselves
+chrome.runtime.onConnect.addListener((port) => {
+    console.log('runtime port connected:', port.name)
+    port.onMessage.addListener((msg) => {
+        if (msg && msg.type === 'REGISTER' && msg.pubkey) {
+            console.log('Register hardware port for pubkey:', msg.pubkey)
+            if (nostrMessageService) {
+                nostrMessageService.addHardwarePort(msg.pubkey, port)
+            }
+        }
+    })
+    port.onDisconnect.addListener(() => {
+        console.log('runtime port disconnected:', port.name)
+    })
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
