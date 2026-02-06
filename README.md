@@ -140,3 +140,14 @@ For technical support or questions, please check the documentation or create an 
 ---
 
 Built with ❤️ for the Nostr ecosystem
+
+## 📚 Quick AI Assistant Reference
+
+**For AI assistants working on this project**: Please refer to [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for comprehensive project documentation including:
+- Project architecture and design patterns
+- Directory structure and responsibilities
+- Core classes and interfaces
+- Data flow diagrams
+- Quick navigation for common tasks
+
+This document helps you understand the project context quickly and make informed decisions.
