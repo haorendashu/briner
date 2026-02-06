@@ -111,7 +111,18 @@ appManager.setupListener()
             </div>
         </div>
         <div v-if="initedListenMessage" class="card">
-            <h3 class="text-lg font-semibold mt-2 mb-3 text-center">Hardware Signer Connected ! <br/> Please keep this windows open !</h3>
+            <div class="flex flex-col items-center gap-4 py-4">
+                <div class="flex items-center gap-2 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold">Hardware Signer Connected</h3>
+                </div>
+                <div class="w-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <div class="font-semibold mb-1">Please keep this window open</div>
+                    <div>It needs to stay open to continue handling signing requests.</div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
