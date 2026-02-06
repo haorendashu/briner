@@ -57,7 +57,10 @@ export class NostrMessageService {
 
     // 添加获取所有signer的pubkey的方法
     getAllSignerPubkeys(): string[] {
-        return Array.from(this.signers.keys())
+        return Array.from(new Set([
+            ...this.signers.keys(),
+            ...this.hardwareSignerPubkeys.keys()
+        ]))
     }
 
     // Register a hardware port for a pubkey
