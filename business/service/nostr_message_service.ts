@@ -20,7 +20,7 @@ export class NostrMessageService {
     private hardwarePorts: Map<string, chrome.runtime.Port> = new Map()
 
     // pending hardware requests: requestId -> { sendResponse, timer }
-    private pendingHardwareRequests: Map<string, { sendResponse: (msg: any) => void, timer?: number }> = new Map()
+    private pendingHardwareRequests: Map<string, { sendResponse: (msg: any) => void, timer?: ReturnType<typeof setTimeout> }> = new Map()
 
     // 存储等待连接完成的Promise解析器
     private pendingConnections: Map<string, { resolve: (app: any) => void, reject: (error: string) => void }> = new Map()
@@ -67,12 +67,15 @@ export class NostrMessageService {
         port.onMessage.addListener((msg: any) => {
             if (!msg) return
             if (msg.type === 'HARDWARE_RESPONSE' && msg.requestId) {
+                console.log('Hardware response received on port for requestId:', msg.requestId, 'msg:', msg)
                 const pending = this.pendingHardwareRequests.get(msg.requestId)
-                if (pending) {
-                    if (pending.timer) clearTimeout(pending.timer)
-                    pending.sendResponse(msg)
-                    this.pendingHardwareRequests.delete(msg.requestId)
+                if (!pending) {
+                    console.warn('No pending hardware request found for requestId:', msg.requestId, 'current pending keys:', Array.from(this.pendingHardwareRequests.keys()))
+                    return
                 }
+                if (pending.timer) clearTimeout(pending.timer)
+                pending.sendResponse(msg)
+                this.pendingHardwareRequests.delete(msg.requestId)
             }
         })
 
@@ -94,11 +97,16 @@ export class NostrMessageService {
             return
         }
 
-        const requestId = message.id || this.genRequestId()
+        const requestId = message.id ?? this.genRequestId()
+        // ensure the forwarded message carries the requestId so the hardware page's response can be correlated
+        message.id = requestId
+
+        console.log('Forwarding to hardware', { pubkey, requestId, message: message })
 
         const timer = setTimeout(() => {
             const pending = this.pendingHardwareRequests.get(requestId)
             if (pending) {
+                console.warn('Hardware response timeout for requestId:', requestId)
                 pending.sendResponse({ requestId, error: 'Hardware response timeout' })
                 this.pendingHardwareRequests.delete(requestId)
             }
@@ -115,14 +123,19 @@ export class NostrMessageService {
             timer
         })
 
+        console.log('Posting message to hardware port', { requestId })
         port.postMessage({ type: 'HARDWARE_REQUEST', requestId, message })
     }
 
     shouldBeHandled(message: any): boolean {
         let messageType = message.type
-        if ((this.handleConnectMessage && messageType == OtherMessageType.CONNECTION_RESULT)
-            || messageType == OtherMessageType.PERMISSION_RESULT) {
+        if (this.handleConnectMessage && messageType == OtherMessageType.CONNECTION_RESULT) {
             return true;
+        }
+
+        // Only handle PERMISSION_RESULT if this instance has a pending permission for it
+        if (messageType == OtherMessageType.PERMISSION_RESULT) {
+            return this.pendingPermissions.has(message.requestId);
         }
 
         if (messageType > 0 && messageType < 10) {

@@ -5,6 +5,7 @@ import { createNesigner, getSerialPort } from 'js_nesigner_sdk'
 import { NostrMessageService } from '../../business/service/nostr_message_service'
 import { NesignerSigner } from '../../business/nostr_signer/nesigner_signer'
 import { appManager } from '../../business/data/app_manager'
+import { OtherMessageType } from '../../business/consts/other_message_type'
 
 const nesignerPinCode = ref("")
 const showInput = ref(false)
@@ -36,15 +37,35 @@ const hardwareUserLogin = async () => {
                     if (msg && msg.type === 'HARDWARE_REQUEST' && msg.requestId && msg.message) {
                         try {
                             await appManager.initialize()
+                            let responded = false
                             // handle the message using local nostrMessageService
                             await nostrMessageService.handle(msg.message, {} as chrome.runtime.MessageSender, (response: any) => {
+                                responded = true
                                 portRef?.postMessage({ type: 'HARDWARE_RESPONSE', requestId: msg.requestId, response: response.response, error: response.error })
                             })
+                            if (!responded) {
+                                portRef?.postMessage({ type: 'HARDWARE_RESPONSE', requestId: msg.requestId, error: 'Hardware request not handled' })
+                            }
                         } catch (e) {
                             console.error('Error handling hardware request:', e)
                             portRef?.postMessage({ type: 'HARDWARE_RESPONSE', requestId: msg.requestId, error: String(e) })
                         }
                     }
+                })
+
+                // Listen to permission result messages from the auth window
+                // These messages also come from background, but the hardware page's NostrMessageService instance
+                // has its own separate pendingPermissions map, so no conflict with background processing
+                chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                    console.log('hardware page receive message:', message)
+                    if (message && message.type === OtherMessageType.PERMISSION_RESULT) {
+                        console.log('hardware page handling PERMISSION_RESULT for requestId:', message.requestId)
+                        if (nostrMessageService.shouldBeHandled(message)) {
+                            nostrMessageService.handle(message, sender, sendResponse)
+                            return true
+                        }
+                    }
+                    return false
                 })
 
                 nostrMessageService.addSigner(pubkey, new NesignerSigner(nesigner))
