@@ -3,6 +3,7 @@ import AppBarComponent from '../components/app_bar_component.vue'
 import { userManager } from '../../business/data/user_manager'
 import { KeyType, User } from '../../business/data/user'
 import { ref, onMounted } from 'vue'
+import { nip19 } from "nostr-tools"
 
 // 响应式数据
 const users = ref<User[]>([])
@@ -91,14 +92,14 @@ onMounted(async () => {
             <div v-else-if="users.length === 0" class="text-center py-4 text-gray-500">
                 No user data available
             </div>
-            <div v-else class="space-y-3">
+            <div v-else class="space-y-3 pt-2 pb-2">
                 <div 
-                    v-for="user in users" 
-                    :key="user.pubkey"
-                    class="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
+                  v-for="user in users" 
+                  :key="user.pubkey"
+                  class="flex justify-between items-center p-4 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition"
                 >
                     <div class="flex-1">
-                        <div class="font-medium">{{ user.pubkey }}</div>
+                        <div class="font-medium">{{ nip19.npubEncode(user.pubkey) }}</div>
                         <div class="text-sm text-gray-600">
                             Type: {{ getUserTypeName(user.keyType) }} | 
                             Created At: {{ formatTimestamp(user.createdAt) }}
