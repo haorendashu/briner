@@ -5,6 +5,7 @@ import appsView from './apps/apps.vue'
 import usersView from './users/users.vue'
 import addUserView from './users/add_user.vue'
 import logsView from './logs/logs.vue'
+import logDetailView from './logs/log_detail.vue'
 import indexView from './index/index.vue'
 import connectView from './pages/connect.vue'
 import authView from './pages/auth.vue'
@@ -17,6 +18,7 @@ const routes = [
     { path: '/users', component: usersView },
     { path: '/users/addUser', component: addUserView },
     { path: '/logs', component: logsView },
+    { path: '/logs/:id', component: logDetailView },
     { path: '/pages/connect', component: connectView },
     { path: '/pages/auth', component: authView },
     { path: '/pages/hardwareSignerLogin', component: hardwareSignerLoginView },

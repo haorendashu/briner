@@ -1,5 +1,5 @@
 <template>
-    <div class="item item-border">
+    <RouterLink :to="`/logs/${authLog.id}`" class="item item-border hover:bg-gray-100 cursor-pointer">
         <div class="w-1/4">
             {{ authLog.appCode }}
         </div>
@@ -14,7 +14,7 @@
         <div class="ml-auto pl-5">
             <p class="text-lg">&gt;</p>
         </div>
-    </div>
+    </RouterLink>
 </template>
 
 <script setup lang="ts">
