@@ -26,6 +26,7 @@
   "scripts": {
     "build": "extension build --browser=all",
     "dev": "extension dev",
-    "preview": "extension preview"
+    "preview": "extension preview",
+    "package": "extension build --browser=all --zip"
   }
 }
