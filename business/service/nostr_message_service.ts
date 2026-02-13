@@ -451,6 +451,11 @@ export class NostrMessageService {
                     sendResponse({ id: id, response: res });
                     break;
                 }
+            case AuthType.GET_RELAYS:
+                {
+                    sendResponse({ id: id, response: {} });
+                    break;
+                }
             case AuthType.NIP04_DECRYPT:
                 {
                     const pubkey = params.pubkey;
